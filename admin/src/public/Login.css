@@ -1,0 +1,36 @@
+.LoginPage .login-form {
+  width: 340px;
+  margin: 50px auto;
+}
+
+.LoginPage .divin {
+  margin-bottom: 15px;
+  background: #f7f7f7;
+  box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.3);
+  padding: 30px;
+}
+
+.LoginPage .login-form h2 {
+    margin: 0 0 15px;
+}
+
+/* .form-control, .btn {
+    min-height: 38px;
+    border-radius: 2px;
+} */
+
+.LoginPage .btn {        
+  font-size: 15px;
+  font-weight: bold;
+}
+
+.brandname {
+  text-align: center;
+  margin-top: 50px;
+}
+
+.partone {
+  color: #00FF00;
+  font-weight: 600;
+  font-size: larger;
+}

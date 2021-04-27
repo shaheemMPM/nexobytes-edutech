@@ -1,0 +1,10 @@
+.std-lines td {
+  background-color: white;
+  border: 1px solid #EEE;
+}
+
+.std-table {
+  -webkit-box-shadow: 10px 10px 10px 0px rgba(200,200,200,1);
+  -moz-box-shadow: 10px 10px 10px 0px rgba(200,200,200,1);
+  box-shadow: 10px 10px 10px 0px rgba(200,200,200,1);
+}
