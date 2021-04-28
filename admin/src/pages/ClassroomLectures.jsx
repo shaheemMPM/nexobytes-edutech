@@ -11,7 +11,7 @@ import "firebase/auth";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 
-const Classrooms = (props) => {
+const ClassroomLectures = (props) => {
   const classId = props.match.params.cid;
   const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -48,6 +48,7 @@ const Classrooms = (props) => {
       .firestore()
       .collection("subjects")
       .where("classId", "==", classId)
+      .orderBy('name')
       .get()
       .then((querySnapshot) => {
         let tempSubjects = querySnapshot.docs.map((doc) => {
@@ -227,4 +228,4 @@ const Classrooms = (props) => {
   );
 };
 
-export default Classrooms;
+export default ClassroomLectures;
