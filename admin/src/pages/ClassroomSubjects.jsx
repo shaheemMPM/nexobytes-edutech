@@ -49,7 +49,7 @@ const ClassroomSubjects = (props) => {
       .firestore()
       .collection("chapters")
       .where("subjectId", "==", subjectId)
-      .orderBy('name')
+      .orderBy("name")
       .get()
       .then((querySnapshot) => {
         let tempChapters = querySnapshot.docs.map((doc) => {
@@ -69,7 +69,10 @@ const ClassroomSubjects = (props) => {
       return;
     }
     if (!!tempChapterName) {
-      let chapterKey = `${subjectId}_${tempChapterName.split(" ").join("").toLowerCase()}`;
+      let chapterKey = `${subjectId}_${tempChapterName
+        .split(" ")
+        .join("")
+        .toLowerCase()}`;
       swal({
         title: "Are you sure?",
         text: "Are you sure you want to add new chapter?",
@@ -128,7 +131,7 @@ const ClassroomSubjects = (props) => {
     <div className="wrapper ">
       <Sidebar />
       <div className="main-panel">
-        <Navbar header="Subjects" />
+        <Navbar header={!!subjectData ? subjectData.name : "Subjects"} />
         <div className="content">
           <div className="container-fluid">
             {isLoading ? (
