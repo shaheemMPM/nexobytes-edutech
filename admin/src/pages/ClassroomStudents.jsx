@@ -188,6 +188,7 @@ const ClassroomStudents = (props) => {
                               className="form-control"
                               type="text"
                               placeholder="Username"
+                              value={tempUserName}
                               onChange={(e) => {
                                 setTempUserName(e.target.value);
                               }}
@@ -198,6 +199,7 @@ const ClassroomStudents = (props) => {
                               className="form-control"
                               type="text"
                               placeholder="Full Name"
+                              value={tempFullName}
                               onChange={(e) => {
                                 setTempFullName(e.target.value);
                               }}
@@ -208,6 +210,7 @@ const ClassroomStudents = (props) => {
                               className="form-control"
                               type="text"
                               placeholder="Password"
+                              value={tempPassword}
                               onChange={(e) => {
                                 setTempPassword(e.target.value);
                               }}

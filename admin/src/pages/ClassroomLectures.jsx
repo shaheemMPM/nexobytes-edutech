@@ -12,11 +12,12 @@ import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 
 const Classrooms = (props) => {
+  const classId = props.match.params.cid;
+  const [classData, setClassData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [tempClassName, setTempClassName] = useState("");
-  const [tempClassDescription, setTempClassDescription] = useState("");
-  const [classrooms, setClassrooms] = useState([]);
+  const [tempSubjectName, setTempSubjectName] = useState("");
+  const [subjects, setSubjects] = useState([]);
 
   useEffect(() => {
     if (!!document.getElementsByClassName("nav-open")[0]) {
@@ -24,19 +25,35 @@ const Classrooms = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchClassRooms();
+    fetchClassData();
+    fetchSubjects();
   }, []);
 
-  const fetchClassRooms = () => {
+  const fetchClassData = () => {
     firebase
       .firestore()
       .collection("classrooms")
+      .doc(classId)
+      .get()
+      .then((classData) => {
+        setClassData(classData.data());
+      })
+      .catch((e) => {
+        console.error(e);
+      });
+  };
+
+  const fetchSubjects = () => {
+    firebase
+      .firestore()
+      .collection("subjects")
+      .where("classId", "==", classId)
       .get()
       .then((querySnapshot) => {
-        let tempClasses = querySnapshot.docs.map((doc) => {
+        let tempSubjects = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        setClassrooms(tempClasses);
+        setSubjects(tempSubjects);
         setIsLoading(false);
       })
       .catch((e) => {
@@ -44,12 +61,16 @@ const Classrooms = (props) => {
       });
   };
 
-  const addNewClassHandler = () => {
-    if (!!tempClassName) {
-      let classKey = tempClassName.split(" ").join("").toLowerCase();
+  const addNewSubjectHandler = () => {
+    if (!classData) {
+      swal("", "Class data is not loaded, try again", "info");
+      return;
+    }
+    if (!!tempSubjectName) {
+      let subKey = `${classId}_${tempSubjectName.split(" ").join("").toLowerCase()}`;
       swal({
         title: "Are you sure?",
-        text: "Are you sure you want to add new classroom?",
+        text: "Are you sure you want to add new subject?",
         icon: "warning",
         buttons: true,
         dangerMode: true,
@@ -57,37 +78,38 @@ const Classrooms = (props) => {
         if (sure) {
           firebase
             .firestore()
-            .collection("classrooms")
-            .doc(classKey)
+            .collection("subjects")
+            .doc(subKey)
             .get()
-            .then((classroom) => {
-              if (!!classroom.data()) {
+            .then((subject) => {
+              if (!!subject.data()) {
                 swal(
-                  "Invalid classroom Name",
-                  "A classroom with the same name already exist in database",
+                  "Invalid Subject Name",
+                  "A subject with the same name already exist in database",
                   "error"
                 );
                 return;
               }
               firebase
                 .firestore()
-                .collection("classrooms")
-                .doc(classKey)
+                .collection("subjects")
+                .doc(subKey)
                 .set({
-                  name: tempClassName,
-                  description: tempClassDescription,
+                  name: tempSubjectName,
+                  classId,
+                  className: classData.name,
                   createdAt: Number(new Date()),
                   createdBy: firebase.auth().currentUser.email,
                 })
                 .then(() => {
                   setIsFormOpen(false);
-                  swal("", "New Classroom Addedd", "success").then(
-                    fetchClassRooms()
+                  swal("", "New Subject Added", "success").then(
+                    fetchSubjects()
                   );
                 })
                 .catch((e) => {
                   console.error(e);
-                  swal("", "Classroom creation failed, try again!", "error");
+                  swal("", "Subject creation failed, try again!", "error");
                 });
             })
             .catch((error) => {
@@ -102,7 +124,7 @@ const Classrooms = (props) => {
     <div className="wrapper ">
       <Sidebar />
       <div className="main-panel">
-        <Navbar />
+        <Navbar header="Lectures" />
         <div className="content">
           <div className="container-fluid">
             {isLoading ? (
@@ -134,38 +156,25 @@ const Classrooms = (props) => {
                       </div>
                     </div>
                     <div className="card-body">
-                      <h4 className="card-title">Add New Classroom</h4>
+                      <h4 className="card-title">Add New Subject</h4>
                       <div style={{ marginTop: "25px" }}>
                         <div className="form-group">
-                          <label htmlFor="ipClassName">Class Name</label>
+                          <label htmlFor="ipClassName">Subject Name</label>
                           <input
                             type="text"
                             className="form-control"
                             id="ipClassName"
-                            placeholder="Enter Class Name"
+                            placeholder="Enter Subject Name"
                             onChange={(e) => {
-                              setTempClassName(e.target.value);
+                              setTempSubjectName(e.target.value);
                             }}
                           />
                         </div>
-
-                        <div className="form-group">
-                          <label htmlFor="classDescription">Description</label>
-                          <textarea
-                            className="form-control"
-                            id="classDescription"
-                            rows="3"
-                            placeholder="About the class"
-                            onChange={(e) => {
-                              setTempClassDescription(e.target.value);
-                            }}
-                          ></textarea>
-                        </div>
                         <button
                           className="btn btn-success"
-                          onClick={addNewClassHandler}
+                          onClick={addNewSubjectHandler}
                         >
-                          ADD NEW CLASS
+                          ADD NEW SUBJECT
                         </button>
                       </div>
                     </div>
@@ -173,13 +182,15 @@ const Classrooms = (props) => {
                 ) : null}
 
                 <div className="row">
-                  {classrooms.map((classroom) => {
+                  {subjects.map((subject) => {
                     return (
                       <div
                         className="col"
-                        key={classroom.id}
+                        key={subject.id}
                         onClick={() => {
-                          props.history.push(`/classrooms/${classroom.id}`);
+                          props.history.push(
+                            `/classrooms/${classId}/lectures/${subject.id}`
+                          );
                         }}
                       >
                         <div
@@ -198,7 +209,7 @@ const Classrooms = (props) => {
                                 marginTop: "53.75px",
                               }}
                             >
-                              {classroom.name}
+                              {subject.name}
                             </h3>
                           </div>
                         </div>
