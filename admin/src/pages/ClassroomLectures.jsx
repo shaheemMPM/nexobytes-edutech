@@ -27,6 +27,7 @@ const ClassroomLectures = (props) => {
     }
     fetchClassData();
     fetchSubjects();
+    // eslint-disable-next-line
   }, []);
 
   const fetchClassData = () => {

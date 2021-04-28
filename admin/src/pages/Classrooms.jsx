@@ -25,6 +25,7 @@ const Classrooms = (props) => {
         .classList.remove("nav-open");
     }
     fetchClassRooms();
+    // eslint-disable-next-line
   }, []);
 
   const fetchClassRooms = () => {

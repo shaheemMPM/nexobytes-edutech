@@ -31,6 +31,7 @@ const ClassroomStudents = (props) => {
     }
     fetchClassData();
     fetchStudents();
+    // eslint-disable-next-line
   }, []);
 
   const fetchClassData = () => {

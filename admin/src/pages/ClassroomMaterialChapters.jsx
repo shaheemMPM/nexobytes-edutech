@@ -8,25 +8,24 @@ import Footer from "../core/components/Footer";
 import * as firebase from "firebase/app";
 import "firebase/firestore";
 import "firebase/auth";
+import "firebase/storage";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 // Import Styles
 import "../public/ClassroomStudents.css";
-import PlaceHolderImage from "../public/hqdefault.jpg";
 
-const ClassroomChapters = (props) => {
+const ClassroomMaterialChapters = (props) => {
   const classId = props.match.params.cid;
   const subjectId = props.match.params.sid;
   const chapterId = props.match.params.chid;
   const [isLoading, setIsLoading] = useState(true);
-  const [videos, setVideos] = useState([]);
+  const [materials, setMaterials] = useState([]);
   const [chapterData, setChapterData] = useState(null);
-  const [tempVideoTitle, setTempVideoTitle] = useState("");
-  const [tempVideoDescription, setTempVideoDescription] = useState("");
-  const [tempVideoPublishTime, setTempVideoPublishTime] = useState(
+  const [tempMaterialTitle, setTempMaterialTitle] = useState("");
+  const [tempMaterialPublishTime, setTempMaterialPublishTime] = useState(
     Number(new Date())
   );
-  const [tempVideoUrl, setTempVideoUrl] = useState("");
+  const [tempFile, setTempFile] = useState(undefined);
 
   useEffect(() => {
     if (!!document.getElementsByClassName("nav-open")[0]) {
@@ -35,7 +34,7 @@ const ClassroomChapters = (props) => {
         .classList.remove("nav-open");
     }
     fetchChapterData();
-    fetchVideos();
+    fetchMaterials();
     // eslint-disable-next-line
   }, []);
 
@@ -53,17 +52,17 @@ const ClassroomChapters = (props) => {
       });
   };
 
-  const fetchVideos = () => {
+  const fetchMaterials = () => {
     firebase
       .firestore()
-      .collection("videos")
+      .collection("materials")
       .where("chapterId", "==", chapterId)
       .get()
       .then((querySnapshot) => {
-        let tempVideos = querySnapshot.docs.map((doc) => {
+        let tempMaterials = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        setVideos(tempVideos);
+        setMaterials(tempMaterials);
         setIsLoading(false);
       })
       .catch((e) => {
@@ -71,48 +70,68 @@ const ClassroomChapters = (props) => {
       });
   };
 
-  const addNewVideoHandler = () => {
+  const addNewMaterialHandler = () => {
     if (!chapterData) {
       swal("", "chapter data is not loaded, try again", "info");
       return;
     }
-    if (!!tempVideoTitle && !!tempVideoUrl) {
+    if (!!tempMaterialTitle && !!tempFile) {
       swal({
         title: "Are you sure?",
-        text: "Are you sure you want to add new video?",
+        text: "Are you sure you want to add new pdf?",
         icon: "warning",
         buttons: true,
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
-          firebase
-            .firestore()
-            .collection("videos")
-            .add({
-              classId,
-              className: chapterData.className,
-              subjectId,
-              subjectName: chapterData.subjectName,
-              chapterId,
-              chapterName: chapterData.name,
-              title: tempVideoTitle,
-              description: tempVideoDescription,
-              publish: tempVideoPublishTime,
-              isActive: true,
-              url: tempVideoUrl,
-              createdAt: Number(new Date()),
-              createdBy: firebase.auth().currentUser.email,
-            })
-            .then(() => {
-              setTempVideoTitle("");
-              setTempVideoDescription("");
-              setTempVideoUrl("");
-              swal("", "New video added", "success").then(fetchVideos());
-            })
-            .catch((e) => {
-              console.error(e);
-              swal("", "video creation failed, try again!", "error");
-            });
+          let uploadTask = firebase
+            .storage()
+            .ref("/materials/" + tempFile.name.split(" ").join(""))
+            .put(tempFile);
+          uploadTask.on(
+            "state_changed",
+            (snapshot) => {
+              let progressPercent =
+                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
+              progressPercent = progressPercent.toFixed(2);
+              console.log(progressPercent);
+            },
+            (error) => {
+              console.error(error);
+            },
+            () => {
+              uploadTask.snapshot.ref.getDownloadURL().then((url) => {
+                firebase
+                  .firestore()
+                  .collection("materials")
+                  .add({
+                    classId,
+                    className: chapterData.className,
+                    subjectId,
+                    subjectName: chapterData.subjectName,
+                    chapterId,
+                    chapterName: chapterData.name,
+                    title: tempMaterialTitle,
+                    publish: tempMaterialPublishTime,
+                    isActive: true,
+                    url,
+                    createdAt: Number(new Date()),
+                    createdBy: firebase.auth().currentUser.email,
+                  })
+                  .then(() => {
+                    setTempMaterialTitle("");
+                    setTempFile(null);
+                    swal("", "New material added", "success").then(
+                      fetchMaterials()
+                    );
+                  })
+                  .catch((e) => {
+                    console.error(e);
+                    swal("", "material creation failed, try again!", "error");
+                  });
+              });
+            }
+          );
         }
       });
     } else {
@@ -120,21 +139,7 @@ const ClassroomChapters = (props) => {
     }
   };
 
-  const getYouTubeVideoId = (url) => {
-    let youtubeUrlRegExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-    let match = url.match(youtubeUrlRegExp);
-    return match && match[7].length === 11 ? match[7] : false;
-  };
-
-  const getThumbnailUrl = (videoUrl) => {
-    let videoId = getYouTubeVideoId(videoUrl);
-    if (videoId) {
-      return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
-    }
-    return PlaceHolderImage;
-  };
-
-  const toggleVideoVisibilityState = (videoId, currentState) => {
+  const toggleMaterialVisibilityState = (materialId, currentState) => {
     swal({
       title: "Are you sure?",
       text: `Are you sure you want to ${
@@ -147,26 +152,26 @@ const ClassroomChapters = (props) => {
       if (sure) {
         firebase
           .firestore()
-          .collection("videos")
-          .doc(videoId)
+          .collection("materials")
+          .doc(materialId)
           .update({
             isActive: !currentState,
           })
           .then(() => {
-            swal("", "Video state changed", "success").then(fetchVideos());
+            swal("", "material state changed", "success").then(fetchMaterials());
           })
           .catch((e) => {
             console.error(e);
-            swal("", "video state changing failed, try again!", "error");
+            swal("", "material state changing failed, try again!", "error");
           });
       }
     });
   };
 
-  const videoDeleteHandler = (videoId) => {
+  const materialDeleteHandler = (materialId) => {
     swal({
       title: "Are you sure?",
-      text: `Are you sure you want to delete this video?`,
+      text: `Are you sure you want to delete this material?`,
       icon: "warning",
       buttons: true,
       dangerMode: true,
@@ -174,15 +179,15 @@ const ClassroomChapters = (props) => {
       if (sure) {
         firebase
           .firestore()
-          .collection("videos")
-          .doc(videoId)
+          .collection("materials")
+          .doc(materialId)
           .delete()
           .then(() => {
-            swal("", "Video has been deleted", "success").then(fetchVideos());
+            swal("", "material has been deleted", "success").then(fetchMaterials());
           })
           .catch((e) => {
             console.error(e);
-            swal("", "video deleting failed, try again!", "error");
+            swal("", "material deleting failed, try again!", "error");
           });
       }
     });
@@ -192,7 +197,7 @@ const ClassroomChapters = (props) => {
     <div className="wrapper ">
       <Sidebar />
       <div className="main-panel">
-        <Navbar header="Lecture Videos" />
+        <Navbar header="Materials" />
         <div className="content">
           <div className="container-fluid">
             {isLoading ? (
@@ -211,10 +216,10 @@ const ClassroomChapters = (props) => {
                 <div className="card">
                   <div className="card-header card-header-primary">
                     <h4 className="card-title" style={{ fontWeight: "600" }}>
-                      Add Lecture
+                      Add Material
                     </h4>
                     <p className="category">
-                      Fill the form to add a new lecture video
+                      Fill the form to add a new pdf material
                     </p>
                   </div>
                   <div className="card-body">
@@ -222,8 +227,7 @@ const ClassroomChapters = (props) => {
                       <thead>
                         <tr>
                           <th>TITLE</th>
-                          <th>DESCRIPTION</th>
-                          <th>URL</th>
+                          <th>FILE</th>
                           <th>PUBLISH TIME</th>
                           <th>ACTION</th>
                         </tr>
@@ -234,32 +238,20 @@ const ClassroomChapters = (props) => {
                             <input
                               className="form-control"
                               type="text"
-                              placeholder="Lecture Title"
-                              value={tempVideoTitle}
+                              placeholder="Material Title"
+                              value={tempMaterialTitle}
                               onChange={(e) => {
-                                setTempVideoTitle(e.target.value);
+                                setTempMaterialTitle(e.target.value);
                               }}
                             />
                           </td>
                           <td>
                             <input
                               className="form-control"
-                              type="text"
-                              placeholder="Lecture Description"
-                              value={tempVideoDescription}
+                              type="file"
+                              accept=".pdf"
                               onChange={(e) => {
-                                setTempVideoDescription(e.target.value);
-                              }}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="form-control"
-                              type="text"
-                              placeholder="YouTube URL"
-                              value={tempVideoUrl}
-                              onChange={(e) => {
-                                setTempVideoUrl(e.target.value);
+                                setTempFile(e.target.files[0]);
                               }}
                             />
                           </td>
@@ -268,7 +260,7 @@ const ClassroomChapters = (props) => {
                               className="form-control"
                               type="datetime-local"
                               onChange={(e) => {
-                                setTempVideoPublishTime(
+                                setTempMaterialPublishTime(
                                   Number(new Date(e.target.value))
                                 );
                               }}
@@ -277,7 +269,7 @@ const ClassroomChapters = (props) => {
                           <td>
                             <button
                               className="btn btn-success btn-sm btn-block"
-                              onClick={addNewVideoHandler}
+                              onClick={addNewMaterialHandler}
                             >
                               ADD
                             </button>
@@ -293,55 +285,45 @@ const ClassroomChapters = (props) => {
                     <tr>
                       <th>Sl No</th>
                       <th>Title</th>
-                      <th>Description</th>
                       <th>Publishing Time</th>
-                      <th className="text-center">Video</th>
+                      <th className="text-center">Pdf</th>
                       <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {videos.map((video, ind) => {
+                    {materials.map((material, ind) => {
                       return (
                         <tr className="std-lines" key={ind}>
                           <td>{ind + 1}</td>
-                          <td>{video.title}</td>
-                          <td>{video.description}</td>
-                          <td>{new Date(video.publish).toLocaleString()}</td>
-                          <td>
+                          <td>{material.title}</td>
+                          <td>{new Date(material.publish).toLocaleString()}</td>
+                          <td style={{textAlign: "center"}}>
                             <a
-                              href={video.url}
+                              href={material.url}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <img
-                                style={{
-                                  display: "block",
-                                  margin: "0 auto",
-                                  height: "100px",
-                                }}
-                                src={getThumbnailUrl(video.url)}
-                                alt={getYouTubeVideoId(video.url)}
-                              />
+                              <span className="material-icons">picture_as_pdf</span>
                             </a>
                           </td>
                           <td className="text-center">
                             <button
                               className={`btn btn-sm ${
-                                video.isActive ? "btn-warning" : "btn-success"
+                                material.isActive ? "btn-warning" : "btn-success"
                               }`}
                               onClick={() => {
-                                toggleVideoVisibilityState(
-                                  video.id,
-                                  video.isActive
+                                toggleMaterialVisibilityState(
+                                  material.id,
+                                  material.isActive
                                 );
                               }}
                             >
-                              {video.isActive ? "DISABLE" : "ENABLE"}
+                              {material.isActive ? "DISABLE" : "ENABLE"}
                             </button>
                             <button
                               className="btn btn-sm btn-danger"
                               onClick={() => {
-                                videoDeleteHandler(video.id);
+                                materialDeleteHandler(material.id);
                               }}
                             >
                               <span className="material-icons">delete</span>
@@ -362,4 +344,4 @@ const ClassroomChapters = (props) => {
   );
 };
 
-export default ClassroomChapters;
+export default ClassroomMaterialChapters;

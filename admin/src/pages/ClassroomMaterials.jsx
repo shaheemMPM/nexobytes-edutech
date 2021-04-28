@@ -27,6 +27,7 @@ const ClassroomMaterials = (props) => {
     }
     fetchClassData();
     fetchSubjects();
+    // eslint-disable-next-line
   }, []);
 
   const fetchClassData = () => {
