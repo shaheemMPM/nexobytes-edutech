@@ -191,21 +191,18 @@ const ClassroomSubjects = (props) => {
                 <div className="row">
                   {chapters.map((chapter) => {
                     return (
-                      <div
-                        className="col"
-                        key={chapter.id}
-                        onClick={() => {
-                          props.history.push(
-                            `/classrooms/${classId}/lectures/${subjectId}/${chapter.id}`
-                          );
-                        }}
-                      >
+                      <div className="col" key={chapter.id}>
                         <div
                           className="card"
                           style={{
                             width: "225px",
                             height: "172.5px",
                             cursor: "pointer",
+                          }}
+                          onClick={() => {
+                            props.history.push(
+                              `/classrooms/${classId}/lectures/${subjectId}/${chapter.id}`
+                            );
                           }}
                         >
                           <div className="card-body">

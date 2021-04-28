@@ -74,15 +74,17 @@ const IndividualClassroom = (props) => {
                 </div>
 
                 <div className="row">
-                  <div
-                    className="col-3"
-                    onClick={() => {
-                      props.history.push(`/classrooms/${classId}/students`);
-                    }}
-                  >
+                  <div className="col-3">
                     <div
                       className="card"
-                      style={{ width: "225px", height: "172.5px", cursor: "pointer" }}
+                      style={{
+                        width: "225px",
+                        height: "172.5px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        props.history.push(`/classrooms/${classId}/students`);
+                      }}
                     >
                       <div className="card-body">
                         <h3
@@ -98,15 +100,17 @@ const IndividualClassroom = (props) => {
                     </div>
                   </div>
 
-                  <div
-                    className="col-3"
-                    onClick={() => {
-                      props.history.push(`/classrooms/${classId}/lectures`);
-                    }}
-                  >
+                  <div className="col-3">
                     <div
                       className="card"
-                      style={{ width: "225px", height: "172.5px", cursor: "pointer" }}
+                      style={{
+                        width: "225px",
+                        height: "172.5px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        props.history.push(`/classrooms/${classId}/lectures`);
+                      }}
                     >
                       <div className="card-body">
                         <h3
@@ -122,15 +126,17 @@ const IndividualClassroom = (props) => {
                     </div>
                   </div>
 
-                  <div
-                    className="col-3"
-                    onClick={() => {
-                      props.history.push(`/classrooms/${classId}/materials`);
-                    }}
-                  >
+                  <div className="col-3">
                     <div
                       className="card"
-                      style={{ width: "225px", height: "172.5px", cursor: "pointer" }}
+                      style={{
+                        width: "225px",
+                        height: "172.5px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        props.history.push(`/classrooms/${classId}/materials`);
+                      }}
                     >
                       <div className="card-body">
                         <h3
@@ -146,15 +152,17 @@ const IndividualClassroom = (props) => {
                     </div>
                   </div>
 
-                  <div
-                    className="col-3"
-                    onClick={() => {
-                      props.history.push(`/classrooms/${classId}/timetables`);
-                    }}
-                  >
+                  <div className="col-3">
                     <div
                       className="card"
-                      style={{ width: "225px", height: "172.5px", cursor: "pointer" }}
+                      style={{
+                        width: "225px",
+                        height: "172.5px",
+                        cursor: "pointer",
+                      }}
+                      onClick={() => {
+                        props.history.push(`/classrooms/${classId}/timetables`);
+                      }}
                     >
                       <div className="card-body">
                         <h3
@@ -169,7 +177,6 @@ const IndividualClassroom = (props) => {
                       </div>
                     </div>
                   </div>
-
                 </div>
               </>
             )}

@@ -48,7 +48,7 @@ const ClassroomLectures = (props) => {
       .firestore()
       .collection("subjects")
       .where("classId", "==", classId)
-      .orderBy('name')
+      .orderBy("name")
       .get()
       .then((querySnapshot) => {
         let tempSubjects = querySnapshot.docs.map((doc) => {
@@ -68,7 +68,10 @@ const ClassroomLectures = (props) => {
       return;
     }
     if (!!tempSubjectName) {
-      let subKey = `${classId}_${tempSubjectName.split(" ").join("").toLowerCase()}`;
+      let subKey = `${classId}_${tempSubjectName
+        .split(" ")
+        .join("")
+        .toLowerCase()}`;
       swal({
         title: "Are you sure?",
         text: "Are you sure you want to add new subject?",
@@ -185,21 +188,18 @@ const ClassroomLectures = (props) => {
                 <div className="row">
                   {subjects.map((subject) => {
                     return (
-                      <div
-                        className="col"
-                        key={subject.id}
-                        onClick={() => {
-                          props.history.push(
-                            `/classrooms/${classId}/lectures/${subject.id}`
-                          );
-                        }}
-                      >
+                      <div className="col" key={subject.id}>
                         <div
                           className="card"
                           style={{
                             width: "225px",
                             height: "172.5px",
                             cursor: "pointer",
+                          }}
+                          onClick={() => {
+                            props.history.push(
+                              `/classrooms/${classId}/lectures/${subject.id}`
+                            );
                           }}
                         >
                           <div className="card-body">

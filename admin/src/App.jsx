@@ -10,6 +10,7 @@ import ClassroomStudents from "./pages/ClassroomStudents";
 import ClassroomLectures from "./pages/ClassroomLectures";
 import ClassroomSubjects from "./pages/ClassroomSubjects";
 import ClassroomChapters from "./pages/ClassroomChapters";
+import ClassroomMaterials from "./pages/ClassroomMaterials";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 // Depandancy Modules
@@ -79,6 +80,11 @@ const App = () => {
           path="/classrooms/:cid/lectures/:sid/:chid"
           exact
           component={ClassroomChapters}
+        />
+        <Route
+          path="/classrooms/:cid/materials"
+          exact
+          component={ClassroomMaterials}
         />
         <Route path="/settings" exact component={Settings} />
         <Route path="*" component={NotFound} />
