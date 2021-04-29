@@ -7,6 +7,7 @@ import Login from "./pages/Login";
 import Classrooms from "./pages/Classrooms";
 import IndividualClassroom from "./pages/IndividualClassroom";
 import ClassroomStudents from "./pages/ClassroomStudents";
+import ClassroomIndividualStudent from "./pages/ClassroomIndividualStudent";
 import ClassroomLectures from "./pages/ClassroomLectures";
 import ClassroomSubjects from "./pages/ClassroomSubjects";
 import ClassroomChapters from "./pages/ClassroomChapters";
@@ -72,7 +73,7 @@ const App = () => {
         <Route
           path="/classrooms/:cid/students/:username"
           exact
-          component={ClassroomStudents}
+          component={ClassroomIndividualStudent}
         />
         <Route
           path="/classrooms/:cid/lectures"
