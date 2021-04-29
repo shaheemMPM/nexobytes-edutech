@@ -84,6 +84,7 @@ const ClassroomMaterialChapters = (props) => {
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
+          setIsLoading(true);
           let uploadTask = firebase
             .storage()
             .ref("/materials/" + tempFile.name.split(" ").join(""))
@@ -135,7 +136,7 @@ const ClassroomMaterialChapters = (props) => {
         }
       });
     } else {
-      swal("", "title and video url should not be empty", "warning");
+      swal("", "title and file should not be empty", "warning");
     }
   };
 
@@ -144,12 +145,13 @@ const ClassroomMaterialChapters = (props) => {
       title: "Are you sure?",
       text: `Are you sure you want to ${
         currentState ? "disable" : "enable"
-      } the video?`,
+      } the material?`,
       icon: "warning",
       buttons: true,
       dangerMode: true,
     }).then((sure) => {
       if (sure) {
+        setIsLoading(true);
         firebase
           .firestore()
           .collection("materials")
@@ -158,7 +160,9 @@ const ClassroomMaterialChapters = (props) => {
             isActive: !currentState,
           })
           .then(() => {
-            swal("", "material state changed", "success").then(fetchMaterials());
+            swal("", "material state changed", "success").then(
+              fetchMaterials()
+            );
           })
           .catch((e) => {
             console.error(e);
@@ -168,7 +172,7 @@ const ClassroomMaterialChapters = (props) => {
     });
   };
 
-  const materialDeleteHandler = (materialId) => {
+  const materialDeleteHandler = (materialId, fileUrl) => {
     swal({
       title: "Are you sure?",
       text: `Are you sure you want to delete this material?`,
@@ -177,17 +181,29 @@ const ClassroomMaterialChapters = (props) => {
       dangerMode: true,
     }).then((sure) => {
       if (sure) {
+        setIsLoading(true);
         firebase
-          .firestore()
-          .collection("materials")
-          .doc(materialId)
+          .storage()
+          .refFromURL(fileUrl)
           .delete()
           .then(() => {
-            swal("", "material has been deleted", "success").then(fetchMaterials());
+            firebase
+              .firestore()
+              .collection("materials")
+              .doc(materialId)
+              .delete()
+              .then(() => {
+                swal("", "material has been deleted", "success").then(
+                  fetchMaterials()
+                );
+              })
+              .catch((e) => {
+                console.error(e);
+                swal("", "material deleting failed, try again!", "error");
+              });
           })
-          .catch((e) => {
-            console.error(e);
-            swal("", "material deleting failed, try again!", "error");
+          .catch((error) => {
+            console.error(error);
           });
       }
     });
@@ -297,19 +313,23 @@ const ClassroomMaterialChapters = (props) => {
                           <td>{ind + 1}</td>
                           <td>{material.title}</td>
                           <td>{new Date(material.publish).toLocaleString()}</td>
-                          <td style={{textAlign: "center"}}>
+                          <td style={{ textAlign: "center" }}>
                             <a
                               href={material.url}
                               target="_blank"
                               rel="noopener noreferrer"
                             >
-                              <span className="material-icons">picture_as_pdf</span>
+                              <span className="material-icons">
+                                picture_as_pdf
+                              </span>
                             </a>
                           </td>
                           <td className="text-center">
                             <button
                               className={`btn btn-sm ${
-                                material.isActive ? "btn-warning" : "btn-success"
+                                material.isActive
+                                  ? "btn-warning"
+                                  : "btn-success"
                               }`}
                               onClick={() => {
                                 toggleMaterialVisibilityState(
@@ -323,7 +343,10 @@ const ClassroomMaterialChapters = (props) => {
                             <button
                               className="btn btn-sm btn-danger"
                               onClick={() => {
-                                materialDeleteHandler(material.id);
+                                materialDeleteHandler(
+                                  material.id,
+                                  material.url
+                                );
                               }}
                             >
                               <span className="material-icons">delete</span>

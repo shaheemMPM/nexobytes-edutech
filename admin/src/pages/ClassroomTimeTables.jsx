@@ -13,15 +13,13 @@ import MoonLoader from "react-spinners/MoonLoader";
 // Import Styles
 import "../public/ClassroomStudents.css";
 
-const ClassroomStudents = (props) => {
+const ClassroomTimeTables = (props) => {
   const classId = props.match.params.cid;
   const [isLoading, setIsLoading] = useState(true);
-  const [students, setStudents] = useState([]);
+  const [timetables, setTimetables] = useState([]);
   const [classData, setClassData] = useState(null);
-  const [tempUserName, setTempUserName] = useState("");
-  const [tempFullName, setTempFullName] = useState("");
-  const [tempPassword, setTempPassword] = useState("");
-  const [visibleIndex, setVisibleIndex] = useState(-1);
+  const [tempDate, setTempDate] = useState(Number(new Date()));
+  const [tempTimetable, setTempTimetable] = useState("");
 
   useEffect(() => {
     if (!!document.getElementsByClassName("nav-open")[0]) {
@@ -30,7 +28,7 @@ const ClassroomStudents = (props) => {
         .classList.remove("nav-open");
     }
     fetchClassData();
-    fetchStudents();
+    fetchTimetables();
     // eslint-disable-next-line
   }, []);
 
@@ -48,17 +46,17 @@ const ClassroomStudents = (props) => {
       });
   };
 
-  const fetchStudents = () => {
+  const fetchTimetables = () => {
     firebase
       .firestore()
-      .collection("students")
+      .collection("timetables")
       .where("classId", "==", classId)
       .get()
       .then((querySnapshot) => {
-        let tempStudents = querySnapshot.docs.map((doc) => {
+        let tempTimetables = querySnapshot.docs.map((doc) => {
           return { id: doc.id, ...doc.data() };
         });
-        setStudents(tempStudents);
+        setTimetables(tempTimetables);
         setIsLoading(false);
       })
       .catch((e) => {
@@ -66,15 +64,15 @@ const ClassroomStudents = (props) => {
       });
   };
 
-  const addNewStudentHandler = () => {
+  const addNewTimetableHandler = () => {
     if (!classData) {
       swal("", "Class data is not loaded, try again", "info");
       return;
     }
-    if (!!tempUserName && !!tempFullName && !!tempPassword) {
+    if (!!tempTimetable) {
       swal({
         title: "Are you sure?",
-        text: "Are you sure you want to add new student?",
+        text: "Are you sure you want to add new timetable?",
         icon: "warning",
         buttons: true,
         dangerMode: true,
@@ -82,47 +80,24 @@ const ClassroomStudents = (props) => {
         if (sure) {
           firebase
             .firestore()
-            .collection("students")
-            .doc(tempUserName)
-            .get()
-            .then((student) => {
-              if (!!student.data()) {
-                swal(
-                  "Invalid Username",
-                  "A student with the same username already exist in database",
-                  "error"
-                );
-                return;
-              }
-              firebase
-                .firestore()
-                .collection("students")
-                .doc(tempUserName)
-                .set({
-                  classId,
-                  className: classData.name,
-                  isActive: false,
-                  name: tempFullName,
-                  username: tempUserName,
-                  password: tempPassword,
-                  createdAt: Number(new Date()),
-                  createdBy: firebase.auth().currentUser.email,
-                })
-                .then(() => {
-                  setTempFullName("");
-                  setTempUserName("");
-                  setTempPassword("");
-                  swal("", "New Student Addedd", "success").then(
-                    fetchStudents()
-                  );
-                })
-                .catch((e) => {
-                  console.error(e);
-                  swal("", "student creation failed, try again!", "error");
-                });
+            .collection("timetables")
+            .add({
+              classId,
+              className: classData.name,
+              date: tempDate,
+              timetable: tempTimetable,
+              createdAt: Number(new Date()),
+              createdBy: firebase.auth().currentUser.email,
             })
-            .catch((error) => {
-              console.error(error);
+            .then(() => {
+              setTempTimetable("");
+              swal("", "New timetable Added", "success").then(
+                fetchTimetables()
+              );
+            })
+            .catch((e) => {
+              console.error(e);
+              swal("", "timetable creation failed, try again!", "error");
             });
         }
       });
@@ -131,22 +106,10 @@ const ClassroomStudents = (props) => {
     }
   };
 
-  const delay = (second) => new Promise((res) => setTimeout(res, second * 1000));
-
-  const switchPasswordVisibility = async (ind) => {
-    if (ind === visibleIndex) {
-      setVisibleIndex(-1);
-    } else {
-      setVisibleIndex(ind);
-      await delay(3);
-      setVisibleIndex(-1);
-    }
-  }
-
-  const deleteStudentsHandler = (sid) => {
+  const deleteTimetableHandler = (tid) => {
     swal({
       title: "Are you sure?",
-      text: "Are you sure you want to delete this student?",
+      text: "Are you sure you want to delete this timetable?",
       icon: "warning",
       buttons: true,
       dangerMode: true,
@@ -155,11 +118,11 @@ const ClassroomStudents = (props) => {
         setIsLoading(true);
         firebase
           .firestore()
-          .collection("students")
-          .doc(sid)
+          .collection("timetables")
+          .doc(tid)
           .delete()
           .then(() => {
-            fetchStudents();
+            fetchTimetables();
           })
           .catch((e) => {
             console.error(e);
@@ -172,7 +135,7 @@ const ClassroomStudents = (props) => {
     <div className="wrapper ">
       <Sidebar />
       <div className="main-panel">
-        <Navbar header="Students" />
+        <Navbar header="Timetables" />
         <div className="content">
           <div className="container-fluid">
             {isLoading ? (
@@ -191,19 +154,18 @@ const ClassroomStudents = (props) => {
                 <div className="card">
                   <div className="card-header card-header-primary">
                     <h4 className="card-title" style={{ fontWeight: "600" }}>
-                      Add Student
+                      Add Timetable For {classData ? classData.name : ''}
                     </h4>
                     <p className="category">
-                      Fill the form to add a new student
+                      Fill the form to add a new Timetable
                     </p>
                   </div>
                   <div className="card-body">
                     <table className="table">
                       <thead>
                         <tr>
-                          <th>USER NAME</th>
-                          <th>NAME</th>
-                          <th>PASSWORD</th>
+                          <th>DATE</th>
+                          <th>TIMETABLE</th>
                           <th>ACTION</th>
                         </tr>
                       </thead>
@@ -212,40 +174,27 @@ const ClassroomStudents = (props) => {
                           <td>
                             <input
                               className="form-control"
-                              type="text"
-                              placeholder="Username"
-                              value={tempUserName}
+                              type="date"
                               onChange={(e) => {
-                                setTempUserName(e.target.value);
+                                setTempDate(Number(new Date(e.target.value)));
                               }}
                             />
                           </td>
                           <td>
-                            <input
+                            <textarea
                               className="form-control"
-                              type="text"
-                              placeholder="Full Name"
-                              value={tempFullName}
+                              rows="5"
+                              placeholder="Time Table"
+                              value={tempTimetable}
                               onChange={(e) => {
-                                setTempFullName(e.target.value);
+                                setTempTimetable(e.target.value);
                               }}
-                            />
-                          </td>
-                          <td>
-                            <input
-                              className="form-control"
-                              type="text"
-                              placeholder="Password"
-                              value={tempPassword}
-                              onChange={(e) => {
-                                setTempPassword(e.target.value);
-                              }}
-                            />
+                            ></textarea>
                           </td>
                           <td>
                             <button
                               className="btn btn-success btn-sm btn-block"
-                              onClick={addNewStudentHandler}
+                              onClick={addNewTimetableHandler}
                             >
                               ADD
                             </button>
@@ -260,31 +209,31 @@ const ClassroomStudents = (props) => {
                   <thead className="thead-dark">
                     <tr>
                       <th>Sl No</th>
-                      <th>Username</th>
-                      <th>Full Name</th>
-                      <th>Password</th>
+                      <th>Date</th>
+                      <th>Timetable</th>
+                      <th>Created By</th>
                       <th className="text-center">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {students.map((student, ind) => {
+                    {timetables.map((timetable, ind) => {
                       return (
                         <tr className="std-lines" key={ind}>
                           <td>{ind + 1}</td>
-                          <td>{student.username}</td>
-                          <td>{student.name}</td>
                           <td>
-                            {
-                              visibleIndex === ind ? student.password : '**********'
-                            }
-                            <span className="material-icons" onClick={() => {switchPasswordVisibility(ind)}} style={{float: 'right', cursor: 'pointer'}}>{visibleIndex === ind ? 'visibility_off':'visibility'}</span>
+                            {new Date(timetable.date).toLocaleDateString()}
                           </td>
+                          <td>
+                            <pre>
+                              {timetable.timetable}
+                            </pre>
+                          </td>
+                          <td>{timetable.createdBy}</td>
                           <td className="text-center">
-                            <button className="btn btn-sm btn-success" onClick={() => {props.history.push(`/classrooms/${classId}/students/${student.username}`)}}>
-                              <span className="material-icons">visibility</span>
-                            </button>
-                            <button className="btn btn-sm btn-danger" onClick={() => {deleteStudentsHandler(student.username)}}>
-                              <span className="material-icons">delete</span>
+                            <button className="btn btn-sm btn-danger" onClick={() => {deleteTimetableHandler(timetable.id)}}>
+                              <span className="material-icons">
+                                delete
+                              </span>
                             </button>
                           </td>
                         </tr>
@@ -302,4 +251,4 @@ const ClassroomStudents = (props) => {
   );
 };
 
-export default ClassroomStudents;
+export default ClassroomTimeTables;
