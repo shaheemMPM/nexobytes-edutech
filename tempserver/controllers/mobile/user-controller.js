@@ -1,5 +1,5 @@
 const { validationResult } = require('express-validator');
-const HttpError = require('../models/http-error');
+const HttpError = require('../../models/http-error');
 const admin = require('firebase-admin');
 
 const login = async (req, res, next) => {

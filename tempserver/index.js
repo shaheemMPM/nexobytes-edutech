@@ -3,8 +3,9 @@ const cors = require("cors");
 const admin = require('firebase-admin');
 const app = express();
 
-const userRoutes = require("./routes/user-routes");
-const subjectRoutes = require("./routes/subject-routes");
+const userRoutes = require("./routes/mobile/user-routes");
+const subjectRoutes = require("./routes/mobile/subject-routes");
+const dashboardRoutes = require("./routes/admin/dashboard-routes");
 
 const serviceAccount = require('./serviceKey.json');
 
@@ -37,6 +38,7 @@ app.get("/", async (req, res) => {
 
 app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/subject", subjectRoutes);
+app.use("/api/v1/dashboard", dashboardRoutes);
 
 app.use((req, res, next) => {
   const error = new HttpError('Could not find this route.', 404);
