@@ -4,9 +4,9 @@ const subjectController = require("../../controllers/mobile/subject-controller")
 
 const router = express.Router();
 
-const isStudent = require("../../middleware/is-student");
+// const isStudent = require("../../middleware/is-student");
 
-router.use(isStudent);
+// router.use(isStudent);
 
 router.get("/", subjectController.getSubjects);
 
