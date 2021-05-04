@@ -3,9 +3,12 @@ const admin = require('firebase-admin');
 
 const getSubjects = async (req, res, next) => {
 
-	let existingUser = req.userData;
+	let {classId} = req.body;
 
-	let classId = existingUser.classId;
+	if (!classId) {
+		console.error(`Request body does not contain classId`);
+		return next(new HttpError('Invalid Input Passed', 422));
+	}
 
 	let subjects;
 	try {
