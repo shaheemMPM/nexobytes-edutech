@@ -251,15 +251,16 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         GestureDetector(
                           onTap: () {
-                            print("Student profile pressed");
-                            // Navigator.of(context).push(
-                            //     MaterialPageRoute(
-                            //         builder: (BuildContext context) => TimeTable(
-                            //           course: widget.course,
-                            //           id: widget.id,
-                            //         )
-                            //     )
-                            // );
+                            Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) => StudentProfileScreen(
+                                      name: widget.name,
+                                      username: widget.username,
+                                      className: widget.className,
+                                      createdAt: widget.createdAt,
+                                    )
+                                )
+                            );
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),

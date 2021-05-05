@@ -11,4 +11,10 @@ router.post(
   userController.login
 );
 
+router.post(
+  "/logout",
+  [check("username").not().isEmpty(), check("password").not().isEmpty()],
+  userController.logout
+);
+
 module.exports = router;
