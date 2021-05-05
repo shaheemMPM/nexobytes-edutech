@@ -92,6 +92,8 @@ const getMaterials = async (req, res, next) => {
       .firestore()
       .collection("materials")
       .where("chapterId", "==", chapterId)
+      .where("isActive", "==", true)
+      .where("publish", "<=", Number(new Date()))
       .get();
     materials = getMaterialsQuery.docs.map((doc) => {
       return { id: doc.id, ...doc.data() };
