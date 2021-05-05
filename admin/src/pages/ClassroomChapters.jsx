@@ -76,6 +76,10 @@ const ClassroomChapters = (props) => {
       swal("", "chapter data is not loaded, try again", "info");
       return;
     }
+    if (!getYouTubeVideoId(tempVideoUrl)) {
+      swal("", "enter a valid youtube url", "info");
+      return;
+    }
     if (!!tempVideoTitle && !!tempVideoUrl) {
       swal({
         title: "Are you sure?",
@@ -99,7 +103,7 @@ const ClassroomChapters = (props) => {
               description: tempVideoDescription,
               publish: tempVideoPublishTime,
               isActive: true,
-              url: tempVideoUrl,
+              url: getYouTubeVideoId(tempVideoUrl),
               createdAt: Number(new Date()),
               createdBy: firebase.auth().currentUser.email,
             })
@@ -126,12 +130,15 @@ const ClassroomChapters = (props) => {
     return match && match[7].length === 11 ? match[7] : false;
   };
 
-  const getThumbnailUrl = (videoUrl) => {
-    let videoId = getYouTubeVideoId(videoUrl);
+  const getThumbnailUrl = (videoId) => {
     if (videoId) {
       return `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`;
     }
     return PlaceHolderImage;
+  };
+
+  const getVideoUrl = (videoId) => {
+    return `https://www.youtube.com/watch?v=${videoId}`;
   };
 
   const toggleVideoVisibilityState = (videoId, currentState) => {
@@ -309,7 +316,7 @@ const ClassroomChapters = (props) => {
                           <td>{new Date(video.publish).toLocaleString()}</td>
                           <td>
                             <a
-                              href={video.url}
+                              href={getVideoUrl(video.url)}
                               target="_blank"
                               rel="noopener noreferrer"
                             >

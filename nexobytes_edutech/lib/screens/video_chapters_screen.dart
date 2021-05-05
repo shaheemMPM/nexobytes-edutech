@@ -238,53 +238,53 @@ class CourseContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 30),
-      child: Row(
-        children: <Widget>[
-          Text(
-            number,
-            style: kHeadingextStyle.copyWith(
-              color: kTextColor.withOpacity(.15),
-              fontSize: 28,
+    return GestureDetector(
+      onTap: (){
+        Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (BuildContext context) => VideoLectureScreen(
+                  subjectId: subjectId,
+                  subjectName: subjectName,
+                  chapterId: chapterId,
+                  chapterName: title,
+                )
+            )
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 30),
+        child: Row(
+          children: <Widget>[
+            Text(
+              number,
+              style: kHeadingextStyle.copyWith(
+                color: kTextColor.withOpacity(.15),
+                fontSize: 28,
+              ),
             ),
-          ),
-          SizedBox(width: 20),
-          Expanded(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: kSubtitleTextSyule.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-              )),
-          // Spacer(),
-          Container(
-            margin: EdgeInsets.only(left: 20),
-            height: 35,
-            width: 35,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: kGreenColor.withOpacity(1),
-            ),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => VideoLectureScreen(
-                          subjectId: subjectId,
-                          subjectName: subjectName,
-                          chapterId: chapterId,
-                          chapterName: title,
-                        )
-                    )
-                );
-              },
+            SizedBox(width: 20),
+            Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: kSubtitleTextSyule.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )),
+            // Spacer(),
+            Container(
+              margin: EdgeInsets.only(left: 20),
+              height: 35,
+              width: 35,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: kGreenColor.withOpacity(1),
+              ),
               child: Icon(Icons.play_arrow, color: Colors.white),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }

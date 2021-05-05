@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:nexobytes_edutech/constants/subjects.dart';
+import 'package:nexobytes_edutech/screens/youtube_display_screen.dart';
 import 'package:nexobytes_edutech/classes/video.dart';
 import 'package:nexobytes_edutech/classes/error.dart';
 import 'package:http/http.dart' as http;
@@ -201,7 +202,8 @@ class _VideoLectureScreenState extends State<VideoLectureScreen> {
                       ],
                     ),
                   ),
-                ))
+                )
+            )
           ],
         ),
       ),
@@ -225,7 +227,6 @@ class _VideoLectureScreenState extends State<VideoLectureScreen> {
 
 }
 
-
 class CourseContent extends StatelessWidget {
   final String number;
   final String title;
@@ -238,44 +239,53 @@ class CourseContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 30),
-      child: Row(
-        children: <Widget>[
-          Text(
-            number,
-            style: kHeadingextStyle.copyWith(
-              color: kTextColor.withOpacity(.15),
-              fontSize: 28,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (BuildContext context) => YoutubeDisplayScreen(
+                  url: url,
+                  title: title,
+                  publish: publish,
+                  description: description,
+                )
+            )
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 30),
+        child: Row(
+          children: <Widget>[
+            Text(
+              number,
+              style: kHeadingextStyle.copyWith(
+                color: kTextColor.withOpacity(.15),
+                fontSize: 28,
+              ),
             ),
-          ),
-          SizedBox(width: 20),
-          Expanded(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: kSubtitleTextSyule.copyWith(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                ),
-              )),
-          // Spacer(),
-          Container(
-            margin: EdgeInsets.only(left: 20),
-            height: 35,
-            width: 35,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: kGreenColor.withOpacity(1),
-            ),
-            child: GestureDetector(
-              onTap: () {
-                print("pressed on video : "+url);
-              },
+            SizedBox(width: 20),
+            Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: kSubtitleTextSyule.copyWith(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w600,
+                  ),
+                )),
+            // Spacer(),
+            Container(
+              margin: EdgeInsets.only(left: 20),
+              height: 35,
+              width: 35,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: kGreenColor.withOpacity(1),
+              ),
               child: Icon(Icons.play_arrow, color: Colors.white),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }

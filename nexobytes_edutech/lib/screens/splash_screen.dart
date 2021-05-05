@@ -44,7 +44,6 @@ class _SplashScreenState extends State<SplashScreen> {
     var userData = prefs.getString(key);
     if(userData != '' && userData != null){
       Student currentStd =  Student.fromJson(json.decode(userData));
-      print(currentStd);
       Navigator.of(context).push(
           MaterialPageRoute(
               builder: (BuildContext context) => HomeScreen(
@@ -81,25 +80,27 @@ class _SplashScreenState extends State<SplashScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        child: Stack(
-          alignment: Alignment.center,
-          children: <Widget>[
-            Opacity(
-              opacity: 0.5,
-              child: Image.asset('assets/images/bg.png'),
+    return Material(
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        decoration: BoxDecoration(
+            color: Color(0xFF0000EE)
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: EdgeInsets.all(16.0),
+              child: Image.asset('assets/images/splash_logo.png'),
             ),
-            Center(
-                child: Shimmer.fromColors(
-                  period: Duration(milliseconds: 1000),
-                  baseColor: Color(0xFF00FF00),
-                  highlightColor: Color(0xFF00F8FC),
-                  child: Container(
-                    padding: EdgeInsets.all(16.0),
-                    child: Image.asset('assets/images/full_logo.png'),
-                  ),
-                )
+            Text('Nexobytes',
+              style: TextStyle(
+                  fontFamily: 'Nunito',
+                  color: Colors.white,
+                  fontSize: 26
+              ),
             )
           ],
         ),

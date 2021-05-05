@@ -36,7 +36,7 @@ class _PdfDisplayScreenState extends State<PdfDisplayScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: Color(0xFFFF0000),
+        backgroundColor: Color(0xFF0000EE),
         leading: IconButton(
           onPressed: () {
             Navigator.of(context).pop();

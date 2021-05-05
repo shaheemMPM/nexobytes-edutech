@@ -182,7 +182,7 @@ class _VideoSubjectScreenState extends State<VideoSubjectScreen> {
                     ? Stack(
                   children: <Widget>[
                     Padding(
-                      padding: const EdgeInsets.all(30),
+                      padding: const EdgeInsets.only(top: 100, bottom: 100, right: 30, left: 30),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
@@ -260,52 +260,52 @@ class CourseContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 30),
-      child: Row(
-        children: <Widget>[
-          Text(
-            number,
-            style: kHeadingextStyle.copyWith(
-              color: kTextColor.withOpacity(.15),
-              fontSize: 32,
+    return GestureDetector(
+      onTap: () {
+        Navigator.of(context).push(
+            MaterialPageRoute(
+                builder: (BuildContext context) => VideoChapterScreen(
+                  subjectId: subjectId,
+                  subjectName: title,
+                )
+            )
+        );
+      },
+      child: Padding(
+        padding: const EdgeInsets.only(bottom: 30),
+        child: Row(
+          children: <Widget>[
+            Text(
+              number,
+              style: kHeadingextStyle.copyWith(
+                color: kTextColor.withOpacity(.15),
+                fontSize: 32,
+              ),
             ),
-          ),
-          SizedBox(width: 20),
-          Expanded(
-              child: Text(
-                title,
-                overflow: TextOverflow.ellipsis,
-                style: kSubtitleTextSyule.copyWith(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w600,
-                  height: 1.5,
-                ),
-              )),
-          // Spacer(),
-          Container(
-            margin: EdgeInsets.only(left: 20),
-            height: 40,
-            width: 40,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: kGreenColor.withOpacity(1),
-            ),
-            child: GestureDetector(
-              onTap: () {
-                Navigator.of(context).push(
-                    MaterialPageRoute(
-                        builder: (BuildContext context) => VideoChapterScreen(
-                          subjectId: subjectId,
-                          subjectName: title,
-                        )
-                    )
-                );
-              },
+            SizedBox(width: 20),
+            Expanded(
+                child: Text(
+                  title,
+                  overflow: TextOverflow.ellipsis,
+                  style: kSubtitleTextSyule.copyWith(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w600,
+                    height: 1.5,
+                  ),
+                )),
+            // Spacer(),
+            Container(
+              margin: EdgeInsets.only(left: 20),
+              height: 40,
+              width: 40,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: kGreenColor.withOpacity(1),
+              ),
               child: Icon(Icons.play_arrow, color: Colors.white),
-            ),
-          )
-        ],
+            )
+          ],
+        ),
       ),
     );
   }

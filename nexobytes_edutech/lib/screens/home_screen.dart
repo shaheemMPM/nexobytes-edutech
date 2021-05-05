@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:nexobytes_edutech/classes/shared_preference.dart';
 import 'package:nexobytes_edutech/screens/video_subjects_screen.dart';
 import 'package:nexobytes_edutech/screens/material_subject_screen.dart';
+import 'package:nexobytes_edutech/screens/student_profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final username, name, classId, className, createdAt, createdBy;
@@ -78,6 +79,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     Text(
                       welcomeNote(widget.name),
                       style: TextStyle(
+                        fontFamily: 'Nunito',
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF262222),
                         fontSize: 30,
@@ -127,6 +129,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Text(
                                             'Video Class',
                                             style: TextStyle(
+                                              fontFamily: 'Nunito',
                                               color: Color(0xFF262222),
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
@@ -179,6 +182,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                           child: Text(
                                             'Notes',
                                             style: TextStyle(
+                                              fontFamily: 'Nunito',
                                               color: Color(0xFF262222),
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
@@ -230,6 +234,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Text(
                                           'Time Table',
                                           style: TextStyle(
+                                            fontFamily: 'Nunito',
                                             color: Color(0xFF262222),
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
@@ -280,6 +285,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         Text(
                                           'Student Profile',
                                           style: TextStyle(
+                                            fontFamily: 'Nunito',
                                             color: Color(0xFF262222),
                                             fontSize: 18,
                                             fontWeight: FontWeight.bold,
