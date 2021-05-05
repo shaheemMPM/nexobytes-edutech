@@ -1,0 +1,34 @@
+name: nexobytes_edutech
+description: Student Application for Nexobytes Edutech
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.12.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  cupertino_icons: ^1.0.2
+  shimmer: ^2.0.0
+  fluttertoast: ^8.0.6
+  shared_preferences: ^2.0.5
+  simple_animations: ^3.1.1
+  http: ^0.13.2
+  flutter_svg: ^0.22.0
+  pdf_viewer_jk: ^2.1.0
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+
+  uses-material-design: true
+
+  assets:
+    - assets/images/
+    - assets/icons/
