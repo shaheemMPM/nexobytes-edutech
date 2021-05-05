@@ -149,7 +149,6 @@ class _LoginScreenState extends State<LoginScreen> {
     setState(() {
       isLoading = true;
     });
-    print("userLogin pressed");
     String username = _userNameController.text.trim();
     String password = _passwordController.text.trim();
 
