@@ -4,6 +4,7 @@ import 'package:nexobytes_edutech/classes/shared_preference.dart';
 import 'package:nexobytes_edutech/screens/video_subjects_screen.dart';
 import 'package:nexobytes_edutech/screens/material_subject_screen.dart';
 import 'package:nexobytes_edutech/screens/student_profile_screen.dart';
+import 'package:nexobytes_edutech/screens/timetable_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   final username, name, classId, className, createdAt, createdBy;
@@ -200,15 +201,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
                         GestureDetector(
                           onTap: () {
-                            print("Timetables pressed");
-                            // Navigator.of(context).push(
-                            //     MaterialPageRoute(
-                            //         builder: (BuildContext context) => TimeTable(
-                            //           course: widget.course,
-                            //           id: widget.id,
-                            //         )
-                            //     )
-                            // );
+                            Navigator.of(context).push(
+                                MaterialPageRoute(
+                                    builder: (BuildContext context) => TimetableScreen(
+                                      classId: widget.classId,
+                                    )
+                                )
+                            );
                           },
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(20),
