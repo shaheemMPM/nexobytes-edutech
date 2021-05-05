@@ -93,7 +93,7 @@ class _LoginScreenState extends State<LoginScreen> {
                           minWidth: double.infinity,
                           height: 60,
                           onPressed: userLogin,
-                          color: Color(0xFF288739),
+                          color: Color(0xFF0000EE),
                           elevation: 0,
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(50)
