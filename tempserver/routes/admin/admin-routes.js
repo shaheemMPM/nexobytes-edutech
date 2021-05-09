@@ -29,6 +29,8 @@ router.post(
   adminController.signup
 );
 
+router.get('/', adminController.getAdmins);
+
 router.use((req, res, next) => {
   return next(new HttpError("Could not find this route.", 404));
 });

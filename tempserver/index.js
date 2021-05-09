@@ -17,6 +17,7 @@ const adminSubjectRoutes = require("./routes/admin/subject-routes");
 const adminChapterRoutes = require("./routes/admin/chapter-routes");
 const adminVideoRoutes = require("./routes/admin/video-routes");
 const adminMaterialRoutes = require("./routes/admin/material-routes");
+const adminTimetableRoutes = require("./routes/admin/timetable-routes");
 
 // Importing utilities
 // const logger = require('./utils/logger');
@@ -53,6 +54,7 @@ app.use("/api/v1/admin/subject", adminSubjectRoutes);
 app.use("/api/v1/admin/chapter", adminChapterRoutes);
 app.use("/api/v1/admin/video", adminVideoRoutes);
 app.use("/api/v1/admin/material", adminMaterialRoutes);
+app.use("/api/v1/admin/timetable", adminTimetableRoutes);
 
 app.use((req, res, next) => {
   return next(new HttpError("Could not find this route.", 404));

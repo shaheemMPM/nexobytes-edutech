@@ -159,5 +159,29 @@ const login = async (req, res, next) => {
   });
 };
 
+const getAdmins = async (req, res, next) => {
+  let admins;
+  try {
+    admins = await Admin.find();
+  } catch (error) {
+    console.error("existing admin read failed", error);
+    return next(
+      new HttpError("admin read failed up failed, please try again later.", 500)
+    );
+  }
+  if (!admins) {
+    console.error("could not find admins");
+    return next(
+      new HttpError("Could not find admins in db.", 404)
+    );
+  }
+
+  res.status(200).json({
+    message: 'admins read successfully',
+    data: admins
+  });
+}
+
 exports.signup = signup;
 exports.login = login;
+exports.getAdmins = getAdmins;
