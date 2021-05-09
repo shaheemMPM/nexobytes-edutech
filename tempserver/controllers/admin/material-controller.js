@@ -22,9 +22,25 @@ const uploadMaterial = async (req, res, next) => {
 
   s3.upload(params, (error, data) => {
     if (error) {
-      res.status(500).send(error);
+      res.status(500).json(error);
     }
-    res.status(200).send(data);
+    res.status(200).json(data);
+  });
+};
+
+const deleteMaterial = async (req, res, next) => {
+  let { key } = req.body;
+  const params = {
+    Bucket: "material-bucket0",
+    Key: key,
+  };
+  s3.deleteObject(params, function (err, data) {
+    if (err) {
+      res.status(500).send(err);
+    }
+    res.status(200).json({
+      message: 'file deleted from s3',
+    })
   });
 };
 
@@ -50,6 +66,7 @@ const createMaterial = async (req, res, next) => {
     subjectName,
     title,
     url,
+    key
   } = req.body;
 
   const createdMaterial = new Material({
@@ -62,6 +79,7 @@ const createMaterial = async (req, res, next) => {
     subjectName,
     title,
     url,
+    key,
     createdAt,
     createdBy,
     isActive: true,
@@ -175,6 +193,7 @@ const deleteMaterialByMaterialId = async (req, res, next) => {
 };
 
 exports.uploadMaterial = uploadMaterial;
+exports.deleteMaterial = deleteMaterial;
 exports.createMaterial = createMaterial;
 exports.getMaterialsByChapterId = getMaterialsByChapterId;
 exports.toggleMaterialStatusByMaterialId = toggleMaterialStatusByMaterialId;

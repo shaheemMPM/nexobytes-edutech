@@ -11,7 +11,17 @@ const router = express.Router();
 
 router.use(checkIsAdmin);
 
-router.post('/upload', uploadFile.uploadfile, materialController.uploadMaterial);
+router.post(
+  "/upload",
+  uploadFile.uploadfile,
+  materialController.uploadMaterial
+);
+
+router.delete(
+  "/delete",
+  [check("key").not().isEmpty()],
+  materialController.deleteMaterial
+);
 
 router.post(
   "/",
@@ -25,13 +35,17 @@ router.post(
     check("subjectName").not().isEmpty(),
     check("title").not().isEmpty(),
     check("url").not().isEmpty(),
+    check("key").not().isEmpty(),
   ],
   materialController.createMaterial
 );
 
 router.get("/:cid", materialController.getMaterialsByChapterId);
 
-router.patch("/status/:mid", materialController.toggleMaterialStatusByMaterialId);
+router.patch(
+  "/status/:mid",
+  materialController.toggleMaterialStatusByMaterialId
+);
 
 router.delete("/:mid", materialController.deleteMaterialByMaterialId);
 

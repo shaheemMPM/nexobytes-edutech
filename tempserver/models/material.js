@@ -15,6 +15,7 @@ const materialSchema = new Schema({
 	subjectName: { type: String, required: true },
 	title: { type: String, required: true },
 	url: { type: String, required: true },
+	key: { type: String, required: true },
 });
 
 module.exports = mongoose.model("Material", materialSchema);
