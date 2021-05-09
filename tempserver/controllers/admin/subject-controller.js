@@ -45,7 +45,7 @@ const getSubjectById = async (req, res, next) => {
 
 	let subject;
 	try {
-		subject = await Subject.find({subjectId});
+		subject = await Subject.findOne({subjectId});
 	} catch (error) {
 		console.error(`Error while reading subject in getSubjectById`, error);
 		return next(new HttpError(`${error.message}`, 500));

@@ -55,7 +55,7 @@ const getChapterById = async (req, res, next) => {
 
   let chapter;
   try {
-    chapter = await Chapter.find({ chapterId });
+    chapter = await Chapter.findOne({ chapterId });
   } catch (error) {
     console.error(`Error while reading chapter in getChapterById`, error);
     return next(new HttpError(`${error.message}`, 500));
