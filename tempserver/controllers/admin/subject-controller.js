@@ -45,10 +45,10 @@ const getSubjectById = async (req, res, next) => {
 
 	let subject;
 	try {
-		subject = await Subject.findById(subjectId);
+		subject = await Subject.find({subjectId});
 	} catch (error) {
-		console.error(`Error while reading subject in getSubjectById`, err);
-		return next(new HttpError(`${err.message}`, 500));
+		console.error(`Error while reading subject in getSubjectById`, error);
+		return next(new HttpError(`${error.message}`, 500));
 	}
 
   if (!subject) {
@@ -71,8 +71,8 @@ const getSubjectsByClassId = async (req, res, next) => {
 	try {
 		subjects = await Subject.find({classId});
 	} catch (error) {
-		console.error(`Error while reading subjects in getSubjectsByClassId`, err);
-		return next(new HttpError(`${err.message}`, 500));
+		console.error(`Error while reading subjects in getSubjectsByClassId`, error);
+		return next(new HttpError(`${error.message}`, 500));
 	}
   
 	res.status(201).json({
