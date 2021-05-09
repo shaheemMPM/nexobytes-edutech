@@ -5,9 +5,7 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
+import axios from "axios";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 // Import Styles
@@ -15,6 +13,7 @@ import "../public/ClassroomStudents.css";
 
 const ClassroomTimeTables = (props) => {
   const classId = props.match.params.cid;
+  const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [timetables, setTimetables] = useState([]);
   const [classData, setClassData] = useState(null);
@@ -27,43 +26,52 @@ const ClassroomTimeTables = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchClassData();
-    fetchTimetables();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchClassData = () => {
-    firebase
-      .firestore()
-      .collection("classrooms")
-      .doc(classId)
-      .get()
-      .then((classData) => {
-        setClassData(classData.data());
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/classroom/${classId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setClassData(response.data.data);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
 
   const fetchTimetables = () => {
-    firebase
-      .firestore()
-      .collection("timetables")
-      .where("classId", "==", classId)
-      .get()
-      .then((querySnapshot) => {
-        let tempTimetables = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        setTimetables(tempTimetables);
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/timetable/${classId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setTimetables(response.data.data);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
 
+  useEffect(() => {
+    if (!!token) {
+      fetchClassData();
+      fetchTimetables();
+    }
+    // eslint-disable-next-line
+  }, [token]);
+  
   const addNewTimetableHandler = () => {
     if (!classData) {
       swal("", "Class data is not loaded, try again", "info");
@@ -78,25 +86,31 @@ const ClassroomTimeTables = (props) => {
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
-          firebase
-            .firestore()
-            .collection("timetables")
-            .add({
-              classId,
-              className: classData.name,
-              date: tempDate,
-              timetable: tempTimetable,
-              createdAt: Number(new Date()),
-              createdBy: firebase.auth().currentUser.email,
-            })
-            .then(() => {
+          const TOKEN = token;
+          const POST_URL =
+            "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/timetable";
+          const header_config = {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+          };
+          axios
+            .post(
+              POST_URL,
+              {
+                classId,
+                className: classData.name,
+                date: tempDate,
+                timetable: tempTimetable,
+              },
+              header_config
+            )
+            .then((response) => {
               setTempTimetable("");
               swal("", "New timetable Added", "success").then(
                 fetchTimetables()
               );
             })
-            .catch((e) => {
-              console.error(e);
+            .catch((error) => {
+              console.error(error);
               swal("", "timetable creation failed, try again!", "error");
             });
         }
@@ -116,17 +130,23 @@ const ClassroomTimeTables = (props) => {
     }).then((sure) => {
       if (sure) {
         setIsLoading(true);
-        firebase
-          .firestore()
-          .collection("timetables")
-          .doc(tid)
-          .delete()
-          .then(() => {
+        const TOKEN = token;
+        const DELETE_URL =
+          `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/timetable/${tid}`;
+        const header_config = {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        };
+        axios
+          .delete(
+            DELETE_URL,
+            header_config
+          )
+          .then((response) => {
             fetchTimetables();
           })
-          .catch((e) => {
-            console.error(e);
-          }); 
+          .catch((error) => {
+            console.error(error);
+          });
       }
     });
   };
@@ -230,7 +250,7 @@ const ClassroomTimeTables = (props) => {
                           </td>
                           <td>{timetable.createdBy}</td>
                           <td className="text-center">
-                            <button className="btn btn-sm btn-danger" onClick={() => {deleteTimetableHandler(timetable.id)}}>
+                            <button className="btn btn-sm btn-danger" onClick={() => {deleteTimetableHandler(timetable._id)}}>
                               <span className="material-icons">
                                 delete
                               </span>
