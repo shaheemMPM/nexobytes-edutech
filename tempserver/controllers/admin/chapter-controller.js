@@ -42,6 +42,24 @@ const createChapter = async (req, res, next) => {
 
 }
 
+const getChapterById = async (req, res, next) => {
+	let chapterId = req.params.cid;
+
+	let chapter;
+	try {
+		chapter = await Chapter.findById(chapterId);
+	} catch (error) {
+		console.error(`Error while reading chapter in getChapterById`, err);
+		return next(new HttpError(`${err.message}`, 500));
+	}
+  
+	res.status(201).json({
+		message: 'Successfully read a chapter',
+		data: chapter
+	});
+
+}
+
 const getChaptersBySubjectId = async (req, res, next) => {
 	let subjectId = req.params.sid;
 
@@ -61,4 +79,5 @@ const getChaptersBySubjectId = async (req, res, next) => {
 }
 
 exports.createChapter = createChapter;
+exports.getChapterById = getChapterById;
 exports.getChaptersBySubjectId = getChaptersBySubjectId;

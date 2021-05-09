@@ -23,7 +23,9 @@ router.post(
   chapterController.createChapter
 );
 
-router.get("/:sid", chapterController.getChaptersBySubjectId);
+router.get("/:cid", chapterController.getChapterById);
+
+router.get("/subject/:sid", chapterController.getChaptersBySubjectId);
 
 router.use((req, res, next) => {
   return next(new HttpError("Could not find this route.", 404));
