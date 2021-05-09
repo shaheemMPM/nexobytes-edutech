@@ -1,60 +1,32 @@
-const admin = require("firebase-admin");
+const jwt = require("jsonwebtoken");
+
 const HttpError = require("../models/http-error");
 
-module.exports = async (req, res, next) => {
+module.exports = (req, res, next) => {
   if (req.method === "OPTIONS") {
     return next();
   }
   try {
-    const { username, password } = req.body; // Authorization: 'Bearer TOKEN'
-
-    if (!username || !password) {
-      console.error("Invalid inputs passed in middleware authorization");
-      return next(
-        new HttpError(
-          "Invalid auth inputs passed, please check your data.",
-          422
-        )
-      );
+    const token = req.headers.authorization.split(" ")[1]; // Authorization: 'Bearer TOKEN'
+    if (!token) {
+      console.error("no token found in admin");
+      return next(new HttpError("Authentication failed!", 403));
     }
-
-    let getUserQuery = await admin
-      .firestore()
-      .collection("students")
-      .doc(username)
-      .get();
-    let existingUser = getUserQuery.data();
-
-    if (!existingUser) {
-      console.error(`Can't find user with given username in auth middleware`);
-      return next(
-        new HttpError(
-          "User does not exist, could not authenticate the request.",
-          403
-        )
-      );
+    const decodedToken = jwt.verify(
+      token,
+      "nexobytes_super_boys_super_secret**key"
+    );
+    req.studentData = {
+      username: decodedToken.username,
+      name: decodedToken.name
+    };
+    if (decodedToken.role !== "student") {
+      console.error("student role not matching");
+      return next(new HttpError("Authentication failed!", 403));
     }
-
-    let isValidPassword = false;
-    isValidPassword = existingUser.password === password;
-
-    if (!isValidPassword) {
-      console.error(
-        `Invalid password in middleware on authenticating : ${username}`
-      );
-      return next(
-        new HttpError(
-          "Invalid credentials, could not authenticate the request.",
-          403
-        )
-      );
-    }
-
-    req.userData = existingUser;
     next();
   } catch (err) {
-    console.error("Auth middleware failed", err);
-    const error = new HttpError("Authentication failed!", 403);
-    return next(error);
+    console.error("check is student failed", err);
+    return next(new HttpError("Authentication failed!", 403));
   }
 };

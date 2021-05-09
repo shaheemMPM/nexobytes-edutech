@@ -21,7 +21,7 @@ module.exports = (req, res, next) => {
       name: decodedToken.name,
       email: decodedToken.email,
     };
-    if (decodedToken.email !== "shaheemmpm@gmail.com") {
+    if (decodedToken.email !== "directionkodur@gmail.com") {
       console.error("super admin email not matching");
       return next(new HttpError("Authentication failed!", 403));
     }
