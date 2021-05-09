@@ -22,10 +22,6 @@ const createTimetable = async (req, res, next) => {
     date
   } = req.body;
 
-  if (!description) {
-    description = " ";
-  }
-
   const createdTimetable = new Timetable({
     classId,
     className,
