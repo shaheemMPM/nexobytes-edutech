@@ -5,10 +5,7 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
-import "firebase/storage";
+import axios from "axios";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 // Import Styles
@@ -18,6 +15,7 @@ const ClassroomMaterialChapters = (props) => {
   const classId = props.match.params.cid;
   const subjectId = props.match.params.sid;
   const chapterId = props.match.params.chid;
+  const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [materials, setMaterials] = useState([]);
   const [chapterData, setChapterData] = useState(null);
@@ -33,42 +31,51 @@ const ClassroomMaterialChapters = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchChapterData();
-    fetchMaterials();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchChapterData = () => {
-    firebase
-      .firestore()
-      .collection("chapters")
-      .doc(chapterId)
-      .get()
-      .then((chapterData) => {
-        setChapterData(chapterData.data());
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/chapter/${chapterId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setChapterData(response.data.data);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
 
   const fetchMaterials = () => {
-    firebase
-      .firestore()
-      .collection("materials")
-      .where("chapterId", "==", chapterId)
-      .get()
-      .then((querySnapshot) => {
-        let tempMaterials = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        setMaterials(tempMaterials);
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/material/${chapterId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setMaterials(response.data.data);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
+
+  useEffect(() => {
+    if (!!token) {
+      fetchChapterData();
+      fetchMaterials();
+    }
+    // eslint-disable-next-line
+  }, [token]);
 
   const addNewMaterialHandler = () => {
     if (!chapterData) {
@@ -85,27 +92,29 @@ const ClassroomMaterialChapters = (props) => {
       }).then((sure) => {
         if (sure) {
           setIsLoading(true);
-          let uploadTask = firebase
-            .storage()
-            .ref("/materials/" + tempFile.name.split(" ").join(""))
-            .put(tempFile);
-          uploadTask.on(
-            "state_changed",
-            (snapshot) => {
-              let progressPercent =
-                (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-              progressPercent = progressPercent.toFixed(2);
-              console.log(progressPercent);
+          let formData = new FormData();
+          formData.append("materialpdf", tempFile);
+          const TOKEN = token;
+          const POST_URL =
+            "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/material/upload";
+          const header_config = {
+            headers: {
+              Authorization: `Bearer ${TOKEN}`,
+              "Content-Type": "multipart/form-data",
             },
-            (error) => {
-              console.error(error);
-            },
-            () => {
-              uploadTask.snapshot.ref.getDownloadURL().then((url) => {
-                firebase
-                  .firestore()
-                  .collection("materials")
-                  .add({
+          };
+          axios
+            .post(POST_URL, formData, header_config)
+            .then((response) => {
+              const POST1_URL =
+                "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/material";
+              const header_config = {
+                headers: { Authorization: `Bearer ${TOKEN}` },
+              };
+              axios
+                .post(
+                  POST1_URL,
+                  {
                     classId,
                     className: chapterData.className,
                     subjectId,
@@ -114,25 +123,27 @@ const ClassroomMaterialChapters = (props) => {
                     chapterName: chapterData.name,
                     title: tempMaterialTitle,
                     publish: tempMaterialPublishTime,
-                    isActive: true,
-                    url,
-                    createdAt: Number(new Date()),
-                    createdBy: firebase.auth().currentUser.email,
-                  })
-                  .then(() => {
-                    setTempMaterialTitle("");
-                    setTempFile(null);
-                    swal("", "New material added", "success").then(
-                      fetchMaterials()
-                    );
-                  })
-                  .catch((e) => {
-                    console.error(e);
-                    swal("", "material creation failed, try again!", "error");
-                  });
-              });
-            }
-          );
+                    url: response.data.Location,
+                    key: response.data.Key,
+                  },
+                  header_config
+                )
+                .then((response1) => {
+                  setTempMaterialTitle("");
+                  setTempFile(null);
+                  swal("", "New material added", "success").then(
+                    fetchMaterials()
+                  );
+                })
+                .catch((error) => {
+                  console.error(error);
+                  swal("", "material creation failed, try again!", "error");
+                });
+            })
+            .catch((e) => {
+              console.error(e);
+              swal("", "material upload failed, try again!", "error");
+            });
         }
       });
     } else {
@@ -152,27 +163,27 @@ const ClassroomMaterialChapters = (props) => {
     }).then((sure) => {
       if (sure) {
         setIsLoading(true);
-        firebase
-          .firestore()
-          .collection("materials")
-          .doc(materialId)
-          .update({
-            isActive: !currentState,
-          })
-          .then(() => {
+        const TOKEN = token;
+        const PATCH_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/material/status/${materialId}`;
+        const header_config = {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        };
+        axios
+          .patch(PATCH_URL, {}, header_config)
+          .then((response) => {
             swal("", "material state changed", "success").then(
               fetchMaterials()
             );
           })
-          .catch((e) => {
-            console.error(e);
+          .catch((error) => {
+            console.error(error);
             swal("", "material state changing failed, try again!", "error");
           });
       }
     });
   };
 
-  const materialDeleteHandler = (materialId, fileUrl) => {
+  const materialDeleteHandler = (materialId, fileKey) => {
     swal({
       title: "Are you sure?",
       text: `Are you sure you want to delete this material?`,
@@ -182,28 +193,34 @@ const ClassroomMaterialChapters = (props) => {
     }).then((sure) => {
       if (sure) {
         setIsLoading(true);
-        firebase
-          .storage()
-          .refFromURL(fileUrl)
-          .delete()
-          .then(() => {
-            firebase
-              .firestore()
-              .collection("materials")
-              .doc(materialId)
-              .delete()
-              .then(() => {
+        const TOKEN = token;
+        const DELETE_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/material/delete`;
+        const header_config = {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+          data: { key: fileKey },
+        };
+        axios
+          .delete(DELETE_URL, header_config)
+          .then((response) => {
+            const DELETE1_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/material/${materialId}`;
+            const header_config = {
+              headers: { Authorization: `Bearer ${TOKEN}` },
+            };
+            axios
+              .delete(DELETE1_URL, header_config)
+              .then((response1) => {
                 swal("", "material has been deleted", "success").then(
                   fetchMaterials()
                 );
               })
-              .catch((e) => {
-                console.error(e);
+              .catch((error) => {
+                console.error(error);
                 swal("", "material deleting failed, try again!", "error");
               });
           })
           .catch((error) => {
             console.error(error);
+            swal("", "material deleting failed, try again!", "error");
           });
       }
     });
@@ -333,7 +350,7 @@ const ClassroomMaterialChapters = (props) => {
                               }`}
                               onClick={() => {
                                 toggleMaterialVisibilityState(
-                                  material.id,
+                                  material._id,
                                   material.isActive
                                 );
                               }}
@@ -344,8 +361,8 @@ const ClassroomMaterialChapters = (props) => {
                               className="btn btn-sm btn-danger"
                               onClick={() => {
                                 materialDeleteHandler(
-                                  material.id,
-                                  material.url
+                                  material._id,
+                                  material.key
                                 );
                               }}
                             >

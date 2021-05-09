@@ -17,6 +17,7 @@ const uploadMaterial = async (req, res, next) => {
   const params = {
     Bucket: "material-bucket0",
     Key: `${uuidv4()}.${fileType}`,
+    ContentType: req.file.mimetype || 'application/pdf',  
     Body: req.file.buffer,
   };
 

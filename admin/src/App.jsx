@@ -20,7 +20,6 @@ import NotFound from "./pages/NotFound";
 // Depandancy Modules
 import * as firebase from "firebase/app";
 import "firebase/auth";
-import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 // Depandancy Files
 import fireConfig from "./config/firebase.config";
@@ -34,23 +33,12 @@ const App = () => {
   useEffect(() => {
     setIsLoading(true);
     let cachedData = sessionStorage.getItem("auth_data");
-    if (!!cachedData) {
-      let authData = JSON.parse(cachedData);
-      firebase
-        .auth()
-        .signInWithEmailAndPassword(authData.email, authData.password)
-        .then(() => {
-          setIsLoggedIn(true);
-          setIsLoading(false);
-        })
-        .catch(function (error) {
-          swal("Error", error.message, "error").then(() => {
-            window.location.reload();
-          });
-        });
-    } else {
+		if (!!cachedData && cachedData !== "null") {
+      setIsLoggedIn(true);
       setIsLoading(false);
-    }
+		} else {
+			setIsLoading(false);
+		}
   }, []);
 
   const authChange = (data) => {

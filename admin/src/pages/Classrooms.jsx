@@ -5,13 +5,12 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
+import axios from "axios";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 
 const Classrooms = (props) => {
+  const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [tempClassName, setTempClassName] = useState("");
@@ -24,27 +23,35 @@ const Classrooms = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchClassRooms();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchClassRooms = () => {
-    firebase
-      .firestore()
-      .collection("classrooms")
-      .orderBy("name")
-      .get()
-      .then((querySnapshot) => {
-        let tempClasses = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        setClassrooms(tempClasses);
+    const TOKEN = token;
+    const GET_URL =
+      "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/classroom";
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setClassrooms(response.data.data);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
+
+  useEffect(() => {
+    if (!!token) {
+      fetchClassRooms();
+    }
+    // eslint-disable-next-line
+  }, [token]);
 
   const addNewClassHandler = () => {
     if (!!tempClassName) {
@@ -57,43 +64,31 @@ const Classrooms = (props) => {
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
-          firebase
-            .firestore()
-            .collection("classrooms")
-            .doc(classKey)
-            .get()
-            .then((classroom) => {
-              if (!!classroom.data()) {
-                swal(
-                  "Invalid classroom Name",
-                  "A classroom with the same name already exist in database",
-                  "error"
-                );
-                return;
-              }
-              firebase
-                .firestore()
-                .collection("classrooms")
-                .doc(classKey)
-                .set({
-                  name: tempClassName,
-                  description: tempClassDescription,
-                  createdAt: Number(new Date()),
-                  createdBy: firebase.auth().currentUser.email,
-                })
-                .then(() => {
-                  setIsFormOpen(false);
-                  swal("", "New Classroom Addedd", "success").then(
-                    fetchClassRooms()
-                  );
-                })
-                .catch((e) => {
-                  console.error(e);
-                  swal("", "Classroom creation failed, try again!", "error");
-                });
+          const TOKEN = token;
+          const POST_URL =
+            "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/classroom";
+          const header_config = {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+          };
+          axios
+            .post(
+              POST_URL,
+              {
+                classId: classKey,
+                name: tempClassName,
+                description: tempClassDescription,
+              },
+              header_config
+            )
+            .then((response) => {
+              setIsFormOpen(false);
+              swal("", "New Classroom Addedd", "success").then(
+                fetchClassRooms()
+              );
             })
             .catch((error) => {
               console.error(error);
+              swal("", "Classroom creation failed, try again!", "error");
             });
         }
       });
@@ -177,7 +172,7 @@ const Classrooms = (props) => {
                 <div className="row">
                   {classrooms.map((classroom) => {
                     return (
-                      <div className="col-3" key={classroom.id}>
+                      <div className="col-3" key={classroom.classId}>
                         <div
                           className="card"
                           style={{
@@ -186,7 +181,7 @@ const Classrooms = (props) => {
                             cursor: "pointer",
                           }}
                           onClick={() => {
-                            props.history.push(`/classrooms/${classroom.id}`);
+                            props.history.push(`/classrooms/${classroom.classId}`);
                           }}
                         >
                           <div className="card-body">

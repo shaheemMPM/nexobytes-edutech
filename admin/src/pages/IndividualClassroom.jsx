@@ -5,13 +5,13 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
+import axios from 'axios';
 // import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 
 const IndividualClassroom = (props) => {
   const classId = props.match.params.cid;
+  const [token, setToken] = useState("");
   const [classData, setClassData] = useState(null);
 
   useEffect(() => {
@@ -20,23 +20,33 @@ const IndividualClassroom = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchClassData();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchClassData = () => {
-    firebase
-      .firestore()
-      .collection("classrooms")
-      .doc(classId)
-      .get()
-      .then((classData) => {
-        setClassData(classData.data());
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/classroom/${classId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setClassData(response.data.data);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
+
+  useEffect(() => {
+    if (!!token) {
+      fetchClassData();
+    }
+    // eslint-disable-next-line
+  }, [token]);
 
   return (
     <div className="wrapper ">

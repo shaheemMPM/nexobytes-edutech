@@ -5,9 +5,7 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
+import axios from "axios";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 // Import Styles
@@ -18,6 +16,7 @@ const ClassroomChapters = (props) => {
   const classId = props.match.params.cid;
   const subjectId = props.match.params.sid;
   const chapterId = props.match.params.chid;
+  const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [videos, setVideos] = useState([]);
   const [chapterData, setChapterData] = useState(null);
@@ -34,42 +33,51 @@ const ClassroomChapters = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchChapterData();
-    fetchVideos();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchChapterData = () => {
-    firebase
-      .firestore()
-      .collection("chapters")
-      .doc(chapterId)
-      .get()
-      .then((chapterData) => {
-        setChapterData(chapterData.data());
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/chapter/${chapterId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setChapterData(response.data.data);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
 
   const fetchVideos = () => {
-    firebase
-      .firestore()
-      .collection("videos")
-      .where("chapterId", "==", chapterId)
-      .get()
-      .then((querySnapshot) => {
-        let tempVideos = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        setVideos(tempVideos);
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/video/${chapterId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setVideos(response.data.data);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
+
+  useEffect(() => {
+    if (!!token) {
+      fetchChapterData();
+      fetchVideos();
+    }
+    // eslint-disable-next-line
+  }, [token]);
 
   const addNewVideoHandler = () => {
     if (!chapterData) {
@@ -89,32 +97,38 @@ const ClassroomChapters = (props) => {
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
-          firebase
-            .firestore()
-            .collection("videos")
-            .add({
-              classId,
-              className: chapterData.className,
-              subjectId,
-              subjectName: chapterData.subjectName,
-              chapterId,
-              chapterName: chapterData.name,
-              title: tempVideoTitle,
-              description: tempVideoDescription,
-              publish: tempVideoPublishTime,
-              isActive: true,
-              url: getYouTubeVideoId(tempVideoUrl),
-              createdAt: Number(new Date()),
-              createdBy: firebase.auth().currentUser.email,
-            })
-            .then(() => {
+          const TOKEN = token;
+          const POST_URL =
+            "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/video";
+          const header_config = {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+          };
+          axios
+            .post(
+              POST_URL,
+              {
+                classId,
+                className: chapterData.className,
+                subjectId,
+                subjectName: chapterData.subjectName,
+                chapterId,
+                chapterName: chapterData.name,
+                title: tempVideoTitle,
+                description: tempVideoDescription,
+                publish: tempVideoPublishTime,
+                isActive: true,
+                url: getYouTubeVideoId(tempVideoUrl),
+              },
+              header_config
+            )
+            .then((response) => {
               setTempVideoTitle("");
               setTempVideoDescription("");
               setTempVideoUrl("");
               swal("", "New video added", "success").then(fetchVideos());
             })
-            .catch((e) => {
-              console.error(e);
+            .catch((error) => {
+              console.error(error);
               swal("", "video creation failed, try again!", "error");
             });
         }
@@ -152,18 +166,18 @@ const ClassroomChapters = (props) => {
       dangerMode: true,
     }).then((sure) => {
       if (sure) {
-        firebase
-          .firestore()
-          .collection("videos")
-          .doc(videoId)
-          .update({
-            isActive: !currentState,
-          })
-          .then(() => {
+        const TOKEN = token;
+        const PATCH_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/video/status/${videoId}`;
+        const header_config = {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        };
+        axios
+          .patch(PATCH_URL, {}, header_config)
+          .then((response) => {
             swal("", "Video state changed", "success").then(fetchVideos());
           })
-          .catch((e) => {
-            console.error(e);
+          .catch((error) => {
+            console.error(error);
             swal("", "video state changing failed, try again!", "error");
           });
       }
@@ -179,16 +193,22 @@ const ClassroomChapters = (props) => {
       dangerMode: true,
     }).then((sure) => {
       if (sure) {
-        firebase
-          .firestore()
-          .collection("videos")
-          .doc(videoId)
-          .delete()
-          .then(() => {
+        const TOKEN = token;
+        const DELETE_URL =
+          `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/video/${videoId}`;
+        const header_config = {
+          headers: { Authorization: `Bearer ${TOKEN}` },
+        };
+        axios
+          .delete(
+            DELETE_URL,
+            header_config
+          )
+          .then((response) => {
             swal("", "Video has been deleted", "success").then(fetchVideos());
           })
-          .catch((e) => {
-            console.error(e);
+          .catch((error) => {
+            console.error(error);
             swal("", "video deleting failed, try again!", "error");
           });
       }
@@ -310,9 +330,16 @@ const ClassroomChapters = (props) => {
                     {videos.map((video, ind) => {
                       return (
                         <tr className="std-lines" key={ind}>
-                          <td>{ind + 1}</td>
-                          <td>{video.title}</td>
-                          <td>{video.description}</td>
+                          <td
+                            style={{ minWidth: "75px" }}
+                            className="text-center"
+                          >
+                            {ind + 1}
+                          </td>
+                          <td style={{ maxWidth: "200px" }}>{video.title}</td>
+                          <td style={{ maxWidth: "300px" }}>
+                            {video.description}
+                          </td>
                           <td>{new Date(video.publish).toLocaleString()}</td>
                           <td>
                             <a
@@ -327,7 +354,7 @@ const ClassroomChapters = (props) => {
                                   height: "100px",
                                 }}
                                 src={getThumbnailUrl(video.url)}
-                                alt={getYouTubeVideoId(video.url)}
+                                alt={video.url}
                               />
                             </a>
                           </td>
@@ -338,7 +365,7 @@ const ClassroomChapters = (props) => {
                               }`}
                               onClick={() => {
                                 toggleVideoVisibilityState(
-                                  video.id,
+                                  video._id,
                                   video.isActive
                                 );
                               }}
@@ -348,7 +375,7 @@ const ClassroomChapters = (props) => {
                             <button
                               className="btn btn-sm btn-danger"
                               onClick={() => {
-                                videoDeleteHandler(video.id);
+                                videoDeleteHandler(video._id);
                               }}
                             >
                               <span className="material-icons">delete</span>

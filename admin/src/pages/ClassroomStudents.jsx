@@ -5,9 +5,7 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
+import axios from "axios";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 // Import Styles
@@ -15,6 +13,7 @@ import "../public/ClassroomStudents.css";
 
 const ClassroomStudents = (props) => {
   const classId = props.match.params.cid;
+  const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [students, setStudents] = useState([]);
   const [classData, setClassData] = useState(null);
@@ -29,42 +28,51 @@ const ClassroomStudents = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchClassData();
-    fetchStudents();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchClassData = () => {
-    firebase
-      .firestore()
-      .collection("classrooms")
-      .doc(classId)
-      .get()
-      .then((classData) => {
-        setClassData(classData.data());
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/classroom/${classId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setClassData(response.data.data);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
 
   const fetchStudents = () => {
-    firebase
-      .firestore()
-      .collection("students")
-      .where("classId", "==", classId)
-      .get()
-      .then((querySnapshot) => {
-        let tempStudents = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        setStudents(tempStudents);
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/student/${classId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setStudents(response.data.data);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
+
+  useEffect(() => {
+    if (!!token) {
+      fetchClassData();
+      fetchStudents();
+    }
+    // eslint-disable-next-line
+  }, [token]);
 
   const addNewStudentHandler = () => {
     if (!classData) {
@@ -80,49 +88,33 @@ const ClassroomStudents = (props) => {
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
-          firebase
-            .firestore()
-            .collection("students")
-            .doc(tempUserName)
-            .get()
-            .then((student) => {
-              if (!!student.data()) {
-                swal(
-                  "Invalid Username",
-                  "A student with the same username already exist in database",
-                  "error"
-                );
-                return;
-              }
-              firebase
-                .firestore()
-                .collection("students")
-                .doc(tempUserName)
-                .set({
-                  classId,
-                  className: classData.name,
-                  isActive: false,
-                  name: tempFullName,
-                  username: tempUserName,
-                  password: tempPassword,
-                  createdAt: Number(new Date()),
-                  createdBy: firebase.auth().currentUser.email,
-                })
-                .then(() => {
-                  setTempFullName("");
-                  setTempUserName("");
-                  setTempPassword("");
-                  swal("", "New Student Addedd", "success").then(
-                    fetchStudents()
-                  );
-                })
-                .catch((e) => {
-                  console.error(e);
-                  swal("", "student creation failed, try again!", "error");
-                });
+          const TOKEN = token;
+          const POST_URL =
+            "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/student";
+          const header_config = {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+          };
+          axios
+            .post(
+              POST_URL,
+              {
+                classId,
+                className: classData.name,
+                name: tempFullName,
+                username: tempUserName,
+                password: tempPassword,
+              },
+              header_config
+            )
+            .then((response) => {
+              setTempFullName("");
+              setTempUserName("");
+              setTempPassword("");
+              swal("", "New Student Addedd", "success").then(fetchStudents());
             })
             .catch((error) => {
               console.error(error);
+              swal("", "student creation failed, try again!", "error");
             });
         }
       });
@@ -131,7 +123,8 @@ const ClassroomStudents = (props) => {
     }
   };
 
-  const delay = (second) => new Promise((res) => setTimeout(res, second * 1000));
+  const delay = (second) =>
+    new Promise((res) => setTimeout(res, second * 1000));
 
   const switchPasswordVisibility = async (ind) => {
     if (ind === visibleIndex) {
@@ -141,7 +134,7 @@ const ClassroomStudents = (props) => {
       await delay(3);
       setVisibleIndex(-1);
     }
-  }
+  };
 
   const deleteStudentsHandler = (sid) => {
     swal({
@@ -153,17 +146,23 @@ const ClassroomStudents = (props) => {
     }).then((sure) => {
       if (sure) {
         setIsLoading(true);
-        firebase
-          .firestore()
-          .collection("students")
-          .doc(sid)
-          .delete()
-          .then(() => {
-            fetchStudents();
-          })
-          .catch((e) => {
-            console.error(e);
-          }); 
+        const TOKEN = token;
+          const DELETE_URL =
+            `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/student/${sid}`;
+          const header_config = {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+          };
+          axios
+            .delete(
+              DELETE_URL,
+              header_config
+            )
+            .then((response) => {
+              fetchStudents();
+            })
+            .catch((error) => {
+              console.error(error);
+            });
       }
     });
   };
@@ -274,16 +273,38 @@ const ClassroomStudents = (props) => {
                           <td>{student.username}</td>
                           <td>{student.name}</td>
                           <td>
-                            {
-                              visibleIndex === ind ? student.password : '**********'
-                            }
-                            <span className="material-icons" onClick={() => {switchPasswordVisibility(ind)}} style={{float: 'right', cursor: 'pointer'}}>{visibleIndex === ind ? 'visibility_off':'visibility'}</span>
+                            {visibleIndex === ind
+                              ? student.password
+                              : "**********"}
+                            <span
+                              className="material-icons"
+                              onClick={() => {
+                                switchPasswordVisibility(ind);
+                              }}
+                              style={{ float: "right", cursor: "pointer" }}
+                            >
+                              {visibleIndex === ind
+                                ? "visibility_off"
+                                : "visibility"}
+                            </span>
                           </td>
                           <td className="text-center">
-                            <button className="btn btn-sm btn-success" onClick={() => {props.history.push(`/classrooms/${classId}/students/${student.username}`)}}>
+                            <button
+                              className="btn btn-sm btn-success"
+                              onClick={() => {
+                                props.history.push(
+                                  `/classrooms/${classId}/students/${student.username}`
+                                );
+                              }}
+                            >
                               <span className="material-icons">visibility</span>
                             </button>
-                            <button className="btn btn-sm btn-danger" onClick={() => {deleteStudentsHandler(student.username)}}>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => {
+                                deleteStudentsHandler(student.username);
+                              }}
+                            >
                               <span className="material-icons">delete</span>
                             </button>
                           </td>

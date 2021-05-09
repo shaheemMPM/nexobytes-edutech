@@ -5,15 +5,14 @@ import Sidebar from "../core/components/Sidebar";
 import Navbar from "../core/components/Navbar";
 import Footer from "../core/components/Footer";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/firestore";
-import "firebase/auth";
+import axios from "axios";
 import swal from "sweetalert";
 import MoonLoader from "react-spinners/MoonLoader";
 
 const ClassroomMaterialSubjects = (props) => {
   const classId = props.match.params.cid;
   const subjectId = props.match.params.sid;
+  const [token, setToken] = useState("");
   const [subjectData, setSubjectData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -26,43 +25,51 @@ const ClassroomMaterialSubjects = (props) => {
         .getElementsByClassName("nav-open")[0]
         .classList.remove("nav-open");
     }
-    fetchSubjectData();
-    fetchChapters();
+    let authData = JSON.parse(sessionStorage.getItem("auth_data"));
+    setToken(authData.token);
     // eslint-disable-next-line
   }, []);
 
   const fetchSubjectData = () => {
-    firebase
-      .firestore()
-      .collection("subjects")
-      .doc(subjectId)
-      .get()
-      .then((subjectData) => {
-        setSubjectData(subjectData.data());
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/subject/${subjectId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setSubjectData(response.data.data);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
 
   const fetchChapters = () => {
-    firebase
-      .firestore()
-      .collection("chapters")
-      .where("subjectId", "==", subjectId)
-      .orderBy("name")
-      .get()
-      .then((querySnapshot) => {
-        let tempChapters = querySnapshot.docs.map((doc) => {
-          return { id: doc.id, ...doc.data() };
-        });
-        setChapters(tempChapters);
+    const TOKEN = token;
+    const GET_URL = `http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/chapter/subject/${subjectId}`;
+    const header_config = {
+      headers: { Authorization: `Bearer ${TOKEN}` },
+    };
+    axios
+      .get(GET_URL, header_config)
+      .then((response) => {
+        setChapters(response.data.data);
         setIsLoading(false);
       })
-      .catch((e) => {
-        console.error(e);
+      .catch((error) => {
+        console.error(error);
       });
   };
+
+  useEffect(() => {
+    if (!!token) {
+      fetchSubjectData();
+      fetchChapters();
+    }
+    // eslint-disable-next-line
+  }, [token]);
 
   const addNewChapterHandler = () => {
     if (!subjectData) {
@@ -82,46 +89,32 @@ const ClassroomMaterialSubjects = (props) => {
         dangerMode: true,
       }).then((sure) => {
         if (sure) {
-          firebase
-            .firestore()
-            .collection("chapters")
-            .doc(chapterKey)
-            .get()
-            .then((chapter) => {
-              if (!!chapter.data()) {
-                swal(
-                  "Invalid chapter Name",
-                  "A chapter with the same name already exist in database",
-                  "error"
-                );
-                return;
-              }
-              firebase
-                .firestore()
-                .collection("chapters")
-                .doc(chapterKey)
-                .set({
-                  name: tempChapterName,
-                  classId,
-                  className: subjectData.name,
-                  subjectId: subjectId,
-                  subjectName: subjectData.name,
-                  createdAt: Number(new Date()),
-                  createdBy: firebase.auth().currentUser.email,
-                })
-                .then(() => {
-                  setIsFormOpen(false);
-                  swal("", "New chapter Added", "success").then(
-                    fetchChapters()
-                  );
-                })
-                .catch((e) => {
-                  console.error(e);
-                  swal("", "chapter creation failed, try again!", "error");
-                });
+          const TOKEN = token;
+          const POST_URL =
+            "http://ec2-13-234-31-43.ap-south-1.compute.amazonaws.com/api/v1/admin/chapter";
+          const header_config = {
+            headers: { Authorization: `Bearer ${TOKEN}` },
+          };
+          axios
+            .post(
+              POST_URL,
+              {
+                chapterId: chapterKey,
+                name: tempChapterName,
+                classId,
+                className: subjectData.className,
+                subjectId: subjectId,
+                subjectName: subjectData.name,
+              },
+              header_config
+            )
+            .then((response) => {
+              setIsFormOpen(false);
+              swal("", "New chapter Added", "success").then(fetchChapters());
             })
             .catch((error) => {
               console.error(error);
+              swal("", "chapter creation failed, try again!", "error");
             });
         }
       });
@@ -192,7 +185,7 @@ const ClassroomMaterialSubjects = (props) => {
                 <div className="row">
                   {chapters.map((chapter) => {
                     return (
-                      <div className="col" key={chapter.id}>
+                      <div className="col" key={chapter.chapterId}>
                         <div
                           className="card"
                           style={{
@@ -202,7 +195,7 @@ const ClassroomMaterialSubjects = (props) => {
                           }}
                           onClick={() => {
                             props.history.push(
-                              `/classrooms/${classId}/materials/${subjectId}/${chapter.id}`
+                              `/classrooms/${classId}/materials/${subjectId}/${chapter.chapterId}`
                             );
                           }}
                         >
