@@ -21,7 +21,9 @@ router.post(
   subjectController.createSubject
 );
 
-router.get("/:cid", subjectController.getSubjectsByClassId);
+router.get("/:sid", subjectController.getSubjectById);
+
+router.get("/class/:cid", subjectController.getSubjectsByClassId);
 
 router.use((req, res, next) => {
   return next(new HttpError("Could not find this route.", 404));

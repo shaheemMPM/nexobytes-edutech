@@ -40,6 +40,30 @@ const createSubject = async (req, res, next) => {
 
 }
 
+const getSubjectById = async (req, res, next) => {
+	let subjectId = req.params.sid;
+
+	let subject;
+	try {
+		subject = await Subject.findById(subjectId);
+	} catch (error) {
+		console.error(`Error while reading subject in getSubjectById`, err);
+		return next(new HttpError(`${err.message}`, 500));
+	}
+
+  if (!subject) {
+    return next(
+      new HttpError(`could not find a subject with given id`, 404)
+    );
+  }
+  
+	res.status(201).json({
+		message: 'Successfully read a subject',
+		data: subject
+	});
+
+}
+
 const getSubjectsByClassId = async (req, res, next) => {
 	let classId = req.params.cid;
 
@@ -59,4 +83,5 @@ const getSubjectsByClassId = async (req, res, next) => {
 }
 
 exports.createSubject = createSubject;
+exports.getSubjectById = getSubjectById;
 exports.getSubjectsByClassId = getSubjectsByClassId;
