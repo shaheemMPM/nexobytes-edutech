@@ -103,7 +103,7 @@ const ClassroomSubjects = (props) => {
                 .set({
                   name: tempChapterName,
                   classId,
-                  className: subjectData.name,
+                  className: subjectData.className,
                   subjectId: subjectId,
                   subjectName: subjectData.name,
                   createdAt: Number(new Date()),
