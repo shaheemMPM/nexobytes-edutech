@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 
 const HttpError = require("../../models/http-error");
 const Student = require("../../models/student");
-const admin = require("firebase-admin");
 
 const login = async (req, res, next) => {
   const errors = validationResult(req);

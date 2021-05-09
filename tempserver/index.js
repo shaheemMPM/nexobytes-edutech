@@ -1,6 +1,5 @@
 const express = require("express");
 const cors = require("cors");
-const admin = require("firebase-admin");
 const mongoose = require("mongoose");
 const app = express();
 
@@ -23,12 +22,6 @@ const adminTimetableRoutes = require("./routes/admin/timetable-routes");
 // const logger = require('./utils/logger');
 // Importing HttpError Model
 const HttpError = require("./models/http-error");
-
-const serviceAccount = require("./serviceKey.json");
-
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-});
 
 app.use(cors());
 
