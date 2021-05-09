@@ -1,5 +1,8 @@
 const HttpError = require("../../models/http-error");
-const admin = require("firebase-admin");
+const Subject = require("../../models/subject");
+const Chapter = require("../../models/chapter");
+const Video = require("../../models/video");
+const Material = require("../../models/material");
 
 const getSubjects = async (req, res, next) => {
   let { classId } = req.body;
@@ -11,14 +14,7 @@ const getSubjects = async (req, res, next) => {
 
   let subjects;
   try {
-    let getSubjectsQuery = await admin
-      .firestore()
-      .collection("subjects")
-      .where("classId", "==", classId)
-      .get();
-    subjects = getSubjectsQuery.docs.map((doc) => {
-      return { id: doc.id, ...doc.data() };
-    });
+    subjects = await Subject.find({ classId });
   } catch (error) {
     console.error(`Error while reading subjects of ${classId}`, error);
     return next(new HttpError("Subject read failed, please try again.", 500));
@@ -36,14 +32,7 @@ const getChapters = async (req, res, next) => {
 
   let chapters;
   try {
-    let getChaptersQuery = await admin
-      .firestore()
-      .collection("chapters")
-      .where("subjectId", "==", subjectId)
-      .get();
-    chapters = getChaptersQuery.docs.map((doc) => {
-      return { id: doc.id, ...doc.data() };
-    });
+    chapters = await Chapter.find({ subjectId });
   } catch (error) {
     console.error(`Error while reading chapters of ${subjectId}`, error);
     return next(new HttpError("Chapter read failed, please try again.", 500));
@@ -59,27 +48,18 @@ const getChapters = async (req, res, next) => {
 const getLectures = async (req, res, next) => {
   let chapterId = req.params.cid;
 
-  let lectures;
+  let videos;
   try {
-    let getLecturesQuery = await admin
-      .firestore()
-      .collection("videos")
-      .where("chapterId", "==", chapterId)
-      .where("isActive", "==", true)
-      .where("publish", "<=", Number(new Date()))
-      .get();
-    lectures = getLecturesQuery.docs.map((doc) => {
-      return { id: doc.id, ...doc.data() };
-    });
+    videos = await Video.find({ chapterId });
   } catch (error) {
-    console.error(`Error while reading lectures of ${chapterId}`, error);
+    console.error(`Error while reading videos of ${chapterId}`, error);
     return next(new HttpError("Lectures read failed, please try again.", 500));
   }
 
   res.status(200).json({
     code: "SUCCESS",
     message: "Lectures read successfully",
-    data: lectures,
+    data: videos,
   });
 };
 
@@ -88,16 +68,7 @@ const getMaterials = async (req, res, next) => {
 
   let materials;
   try {
-    let getMaterialsQuery = await admin
-      .firestore()
-      .collection("materials")
-      .where("chapterId", "==", chapterId)
-      .where("isActive", "==", true)
-      .where("publish", "<=", Number(new Date()))
-      .get();
-    materials = getMaterialsQuery.docs.map((doc) => {
-      return { id: doc.id, ...doc.data() };
-    });
+    materials = await Material.find({ chapterId });
   } catch (error) {
     console.error(`Error while reading materials of ${chapterId}`, error);
     return next(new HttpError("materials read failed, please try again.", 500));

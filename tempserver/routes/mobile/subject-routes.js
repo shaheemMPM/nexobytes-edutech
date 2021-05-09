@@ -2,7 +2,11 @@ const express = require("express");
 
 const subjectController = require("../../controllers/mobile/subject-controller");
 
+const checkIsStudent = require("../../middleware/is-student");
+
 const router = express.Router();
+
+router.use(checkIsStudent);
 
 router.post("/", subjectController.getSubjects);
 
