@@ -1,19 +1,11 @@
 // Core Modules
 import React from "react";
 // Dependancy Modules
-import * as firebase from "firebase/app";
-import "firebase/auth";
 
 const Navbar = (props) => {
   const Logout = () => {
-    firebase
-      .auth()
-      .signOut()
-      .then(() => {
-        sessionStorage.setItem("auth_data", "");
-        window.location.pathname = "/";
-      })
-      .catch((e) => alert("two : " + e.message));
+    sessionStorage.setItem("auth_data", "");
+    window.location.pathname = "/";
   };
 
   let HeaderString = "";

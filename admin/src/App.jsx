@@ -18,13 +18,8 @@ import ClassroomTimeTables from "./pages/ClassroomTimeTables";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 // Depandancy Modules
-import * as firebase from "firebase/app";
-import "firebase/auth";
 import MoonLoader from "react-spinners/MoonLoader";
 // Depandancy Files
-import fireConfig from "./config/firebase.config";
-
-firebase.initializeApp(fireConfig);
 
 const App = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
