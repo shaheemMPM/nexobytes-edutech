@@ -7,7 +7,6 @@ import 'package:nexobytes_edutech/screens/login_screen.dart';
 import 'package:nexobytes_edutech/classes/student.dart';
 import 'package:nexobytes_edutech/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:shimmer/shimmer.dart';
 
 class SplashScreen extends StatefulWidget {
   @override
